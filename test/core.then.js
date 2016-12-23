@@ -1,7 +1,7 @@
 var assert = require('assert');
 var core = require('../core');
 
-require('../core.then');
+require('../core.then.js');
 
 var txt = core.txt;
 var rgx = core.rgx;
@@ -14,14 +14,14 @@ suite('Core.Then', function () {
     'use strict';
 
     suite('make', function () {
-        test(1, function () {
+        test("1", function () {
             var p = txt('abc').make(123);
             var r = p.exec('abc');
 
             assert.equal(r, 123);
         });
 
-        test(2, function () {
+        test("2", function () {
             var p = rep(any(rgx(/[0-9]+/).make('d'), rgx(/[a-z]+/).make('w')));
             var r = p.exec('ab17cb27kjdjs73dk3');
 
@@ -30,28 +30,28 @@ suite('Core.Then', function () {
     });
 
     suite('select', function () {
-        test(1, function () {
+        test("1", function () {
             var p = rep(rgx(/\w+/), txt(',')).select(0);
             var r = p.exec('1,2,3');
 
             assert.equal(r, '1');
         });
 
-        test(2, function () {
+        test("2", function () {
             var p = rep(rgx(/\w+/), txt(',')).select(2);
             var r = p.exec('1,2,3');
 
             assert.equal(r, '3');
         });
 
-        test(3, function () {
+        test("3", function () {
             var p = rep(rgx(/\w+/), txt(',')).select(-1);
             var r = p.exec('1,2,3');
 
             assert.equal(r, void 0);
         });
 
-        test(4, function () {
+        test("4", function () {
             var p = opt(txt('x')).select(123);
             var s = '';
             var r = p.exec(s);
@@ -61,14 +61,14 @@ suite('Core.Then', function () {
     });
 
     suite('as', function () {
-        test(1, function () {
+        test("1", function () {
             var p = rgx(/\w+/).as('w');
             var r = p.exec('123');
 
             assert.deepEqual(r, { w: 123 });
         });
 
-        test(2, function () {
+        test("2", function () {
             var p = rgx(/\w+/).as('w').as('m');
             var r = p.exec('123');
 
@@ -77,21 +77,21 @@ suite('Core.Then', function () {
     });
 
     suite('map', function () {
-        test(1, function () {
+        test("1", function () {
             var p = rep(rgx(/\w+/), rgx(/\s+/)).map({});
             var r = p.exec('abc def 123');
 
             assert.deepEqual(r, {});
         });
 
-        test(1, function () {
+        test("1", function () {
             var p = rep(rgx(/\w+/), rgx(/\s+/)).map({ x: 0, y: 1, z: 2 });
             var r = p.exec('abc def 123');
 
             assert.deepEqual(r, { x: 'abc', y: 'def', z: '123' });
         });
 
-        test(1, function () {
+        test("1", function () {
             var p = rep(rgx(/\w+/), rgx(/\s+/)).map({ x: 111 });
             var r = p.exec('abc def 123');
 
@@ -100,21 +100,21 @@ suite('Core.Then', function () {
     });
 
     suite('parseInt', function () {
-        test(10, function () {
+        test("10", function () {
             var p = rgx(/\w+/).parseInt();
             var r = p.exec('123');
 
             assert.strictEqual(r, 123);
         });
 
-        test(2, function () {
+        test("2", function () {
             var p = rgx(/\w+/).parseInt(2);
             var r = p.exec('1011');
 
             assert.strictEqual(r, 11);
         });
 
-        test(16, function () {
+        test("16", function () {
             var p = rgx(/\w+/).parseInt(16);
             var r = p.exec('20');
 
@@ -123,14 +123,14 @@ suite('Core.Then', function () {
     });
 
     suite('parseFloat', function () {
-        test(1, function () {
+        test("1", function () {
             var p = rgx(/.+/).parseFloat();
             var r = p.exec('123.456');
 
             assert.strictEqual(r, 123.456);
         });
 
-        test(2, function () {
+        test("2", function () {
             var p = rgx(/.+/).parseFloat();
             var r = p.exec('123');
 
@@ -139,14 +139,14 @@ suite('Core.Then', function () {
     });
 
     suite('merge', function () {
-        test(1, function () {
+        test("1", function () {
             var p = rep(rgx(/\w+/), rgx(/\s+/)).merge();
             var r = p.exec('a  b c');
 
             assert.equal(r, 'abc');
         });
 
-        test(2, function () {
+        test("2", function () {
             var p = rep(rgx(/\w+/), rgx(/\s+/)).merge(';');
             var r = p.exec('a  b c');
 
@@ -155,14 +155,14 @@ suite('Core.Then', function () {
     });
 
     suite('text', function () {
-        test(1, function () {
+        test("1", function () {
             var p = txt('a').as('w').text();
             var r = p.exec('a');
 
             assert.equal(r, 'a');
         });
 
-        test(2, function () {
+        test("2", function () {
             var p = opt(txt('a')).text();
             var r = p.exec('');
 
@@ -171,14 +171,14 @@ suite('Core.Then', function () {
     });
 
     suite('join', function () {
-        test(1, function () {
+        test("1", function () {
             var p = rep(seq(rgx(/\w+/), txt('='), rgx(/\d+/).parseInt()), txt(';')).join(0, 2);
             var r = p.exec('a=1;bb=22;ccc=333');
 
             assert.deepEqual(r, { a: 1, bb: 22, ccc: 333 });
         });
 
-        test(2, function () {
+        test("2", function () {
             var p = rep(seq(rgx(/\w+/), txt('='), rgx(/\d+/).parseInt()), txt(';')).join(0, 111);
             var r = p.exec('a=1;bb=22;ccc=333');
 
@@ -187,7 +187,7 @@ suite('Core.Then', function () {
     });
 
     suite('flatten', function () {
-        test(1, function () {
+        test("1", function () {
             var q = { exec: function (str, pos) { return p.exec(str, pos) } };
             var p = seq(txt('('), rep(any(rgx(/\w+/), q), txt(',')), txt(')')).select(1);
             var s = '((((1,2,3),4,5,(6,(7),8),9),((1,2,3),4,5,(6,7,8),9)))';
@@ -200,7 +200,7 @@ suite('Core.Then', function () {
     });
 
     suite('trim', function () {
-        test(1, function () {
+        test("1", function () {
             var p = rgx(/.+/).trim();
             var s = '123';
             var r = p.exec(s);
@@ -208,7 +208,7 @@ suite('Core.Then', function () {
             assert.deepEqual(r, '123');
         });
 
-        test(2, function () {
+        test("2", function () {
             var p = rgx(/.+/).trim();
             var s = '   123   ';
             var r = p.exec(s);
@@ -218,7 +218,7 @@ suite('Core.Then', function () {
     });
 
     suite('slice', function () {
-        test(1, function () {
+        test("1", function () {
             var p = rgx(/\d+/).slice(1, 5);
             var s = '0123456789';
             var r = p.exec(s);
@@ -226,7 +226,7 @@ suite('Core.Then', function () {
             assert.equal(r, '1234');
         });
 
-        test(2, function () {
+        test("2", function () {
             var p = rgx(/\d+/).slice(+1, -1);
             var s = '0123456789';
             var r = p.exec(s);
