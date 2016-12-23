@@ -1,4 +1,14 @@
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else {
+		var a = factory();
+		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
+	}
+})(this, function() {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 
@@ -716,24 +726,21 @@ exports.default = Pattern;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.PEG = exports.ABNF = undefined;
 
 var _abnf = __webpack_require__(1);
 
-Object.defineProperty(exports, 'ABNF', {
-  enumerable: true,
-  get: function get() {
-    return _abnf.ABNF;
-  }
-});
+var _abnf2 = _interopRequireDefault(_abnf);
 
 var _peg = __webpack_require__(2);
 
-Object.defineProperty(exports, 'PEG', {
-  enumerable: true,
-  get: function get() {
-    return _peg.PEG;
-  }
-});
+var _peg2 = _interopRequireDefault(_peg);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.ABNF = _abnf2.default;
+exports.PEG = _peg2.default;
 
 /***/ }
 /******/ ]);
+});

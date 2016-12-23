@@ -4,7 +4,8 @@ module.exports = {
   entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'build'),
-    filename: 'llkp.js'
+    filename: 'llkp.js',
+    libraryTarget: "umd"
   },
 
   module: {

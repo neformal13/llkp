@@ -1,2 +1,4 @@
-export {ABNF} from './abnf';
-export {PEG} from './peg';
+import ABNF from './abnf';
+import PEG from './peg';
+
+export {ABNF, PEG};
