@@ -1,2 +1,2 @@
-export {abnf} from './abnf';
-export {peg} from './peg';
+export {ABNF} from './abnf';
+export {PEG} from './peg';

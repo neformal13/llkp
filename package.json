@@ -36,7 +36,7 @@
   },
   "readmeFilename": "README.md",
   "gitHead": "9fc9f50591fa36e41c65dcaeae2e1aa6f4a6897d",
-  "main": "./src/index.js",
+  "main": "./build/llkp.js",
   "directories": {
     "test": "test"
   },

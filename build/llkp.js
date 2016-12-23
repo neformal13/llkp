@@ -719,19 +719,19 @@ Object.defineProperty(exports, "__esModule", {
 
 var _abnf = __webpack_require__(1);
 
-Object.defineProperty(exports, 'abnf', {
+Object.defineProperty(exports, 'ABNF', {
   enumerable: true,
   get: function get() {
-    return _abnf.abnf;
+    return _abnf.ABNF;
   }
 });
 
 var _peg = __webpack_require__(2);
 
-Object.defineProperty(exports, 'peg', {
+Object.defineProperty(exports, 'PEG', {
   enumerable: true,
   get: function get() {
-    return _peg.peg;
+    return _peg.PEG;
   }
 });
 
