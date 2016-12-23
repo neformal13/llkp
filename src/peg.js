@@ -7,7 +7,7 @@
 
     var core = typeof window != typeof void 0 ?
         window.LLKP.Core : // for browsers
-        (require('./core.then'), require('./core')); // for Node
+        (require('./core.then.js'), require('./core')); // for Node
 
     var Pattern = core.Pattern;
     var txt = core.txt;

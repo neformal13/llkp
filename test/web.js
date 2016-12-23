@@ -23,31 +23,31 @@ suite('Web', function () {
     }
 
     test('Core', function () {
-        load('core.js');
+        load('src/core.js');
 
         assert.equal(typeof window.LLKP.Core.Pattern, 'function');
         assert.equal(typeof window.LLKP.Core.txt, 'function');
     });
 
     test('Core.Then', function () {
-        load('core.js');
-        load('core.then.js');
+        load('src/core.js');
+        load('src/core.then.js');
 
         assert.equal(typeof window.LLKP.Core.Pattern.prototype.select, 'function');
     });
 
     test('ABNF', function () {
-        load('core.js');
-        load('core.then.js');
-        load('abnf.js');
+        load('src/core.js');
+        load('src/core.then.js');
+        load('src/abnf.js');
 
         assert.equal(typeof window.LLKP.ABNF, 'function');
     });
 
     test('PEG', function () {
-        load('core.js');
-        load('core.then.js');
-        load('peg.js');
+        load('src/core.js');
+        load('src/core.then.js');
+        load('src/peg.js');
 
         assert.equal(typeof window.LLKP.PEG, 'function');
     });

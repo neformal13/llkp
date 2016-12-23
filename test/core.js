@@ -1,5 +1,5 @@
 var assert = require('assert');
-var core = require('../core');
+var core = require('../src/core');
 
 var txt = core.txt;
 var rgx = core.rgx;

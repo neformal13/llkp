@@ -1,5 +1,5 @@
 var assert = require('assert');
-var PEG = require('../peg');
+var PEG = require('../src/peg');
 
 suite('PEG', function () {
     'use strict';
