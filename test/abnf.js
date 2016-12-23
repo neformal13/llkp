@@ -1,5 +1,5 @@
-var assert = require('assert');
-var ABNF = require('../src/abnf');
+import assert from 'assert';
+import ABNF from '../src/abnf';
 
 function forEach(dict, fn) {
     for (var key in dict)

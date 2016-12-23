@@ -1,13 +1,16 @@
-var assert = require('assert');
-var core = require('../src/core');
+require('babel-core/register')({
 
-var txt = core.txt;
-var rgx = core.rgx;
-var opt = core.opt;
-var exc = core.exc;
-var any = core.any;
-var seq = core.seq;
-var rep = core.rep;
+});
+
+import assert from 'assert';
+import {
+  txt,
+  rgx,
+  opt,
+  exc,
+  any,
+  seq,
+  rep} from '../src/core';
 
 suite('Core', function () {
     'use strict';

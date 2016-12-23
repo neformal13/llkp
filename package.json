@@ -10,10 +10,10 @@
     "RFC 5234"
   ],
   "version": "0.0.6",
-  "bin": {
-    "core": "./core.js"
-  },
   "devDependencies": {
+    "babel-core": "^6.21.0",
+    "babel-loader": "^6.2.10",
+    "babel-preset-env": "^1.1.4",
     "jshint": "^2.9.4",
     "mocha": "^3.2.0"
   },
@@ -31,12 +31,12 @@
     }
   ],
   "scripts": {
-    "pretest": "jshint --exclude node_modules --verbose .",
-    "test": "mocha -u tdd"
+    "pretest": "jshint --verbose ./src",
+    "test": "mocha -u tdd --compilers js:babel-core/register"
   },
   "readmeFilename": "README.md",
   "gitHead": "9fc9f50591fa36e41c65dcaeae2e1aa6f4a6897d",
-  "main": "core.js",
+  "main": "./src/index.js",
   "directories": {
     "test": "test"
   },

@@ -1,14 +1,11 @@
-var assert = require('assert');
-var core = require('../src/core');
-
-require('../src/core.then.js');
-
-var txt = core.txt;
-var rgx = core.rgx;
-var opt = core.opt;
-var any = core.any;
-var seq = core.seq;
-var rep = core.rep;
+import assert from 'assert';
+import  {
+  txt,
+  rgx,
+  opt,
+  any,
+  seq,
+  rep} from '../src/core';
 
 suite('Core.Then', function () {
     'use strict';
