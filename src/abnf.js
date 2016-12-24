@@ -35,8 +35,6 @@ const quoted = (lq, rq) => {
 
 class ABNF extends Pattern {
   constructor (definition, rules) {
-    let refs = {};
-
     const parse = abnf => {
       const r = ABNF.pattern.exec(abnf);
       if (r) return r;
@@ -90,28 +88,27 @@ class ABNF extends Pattern {
       });
     };
 
-    let pattern, name;
+    let refs = {};
 
     if (rules instanceof Function)
         rules.call(rules = {}, build);
     else
         rules = Object.create(rules || {});
 
-    for (name in ABNF.rules)
+    for (let name in ABNF.rules)
         if (name in rules)
           throw new SyntaxError('Rule name is reserved: ' + name);
         else
           rules[name] = ABNF.rules[name];
 
-    pattern = build(definition);
+    let pattern = build(definition);
 
-    for (name in refs)
+    for (let name in refs)
         if (!rules[name])
           throw new SyntaxError('Rule is not defined: ' + name);
 
     super(pattern + '', pattern.exec);
   }
-
 }
 
 ABNF.pattern = (function () {
@@ -159,7 +156,7 @@ ABNF.pattern = (function () {
         .then(function (r) { return r[1] ? { exc: [r[0], r[1][1]] } : r[0] });
 
     rules.seq = rep(seq(opt(ref('lbl')), ref('exc')), rgx(/\s*/))
-        .then(function (r) {
+        .then((r) => {
             let i, m, s = [];
 
             for (i = 0; i < r.length; i++) {
@@ -174,14 +171,14 @@ ABNF.pattern = (function () {
         });
 
     rules.any = rep(ref('seq'), rgx(/\s*\/\s*/))
-        .then(function (r) { return r.length == 1 ? r[0] : { any: r } });
+        .then( (r) =>  r.length === 1 ? r[0] : { any: r  } );
 
     rules.sep = seq(rgx(/\s*\{\s*/), ref('any'), rgx(/\s*\}\s*/)).select(1);
     rules.grp = seq(rgx(/\s*\(\s*/), ref('any'), rgx(/\s*\)\s*/)).select(1);
     rules.opt = seq(rgx(/\s*\[\s*/), ref('any'), rgx(/\s*\]\s*/)).select(1).as('opt');
 
     rules.sgr = seq(any(ref('grp'), ref('opt')), opt(ref('sel')))
-        .then(function (r) { return !r[1] ? r[0] : { sel: r[0], key: r[1] } });
+        .then( (r) => !r[1] ? r[0] : { sel: r[0], key: r[1] } );
 
     rules.element = any(
         any(quoted('"', '"'), quoted("'", "'")).as('txt'),

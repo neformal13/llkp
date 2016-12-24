@@ -4,61 +4,56 @@ import ABNF from '../src/abnf';
 const forEach = (dict, fn) => {for (let key in dict) {fn(dict[key], key); }};
 
 function ptest(pattern, samples) {
-    var rules = {
-        'num': ABNF(/\d+/).parseInt(),
-        'var': /[a-zA-Z]\w+/
+    let rules = {
+      'num': ABNF(/\d+/).parseInt(),
+      'var': /[a-zA-Z]\w+/
     };
 
-    if (arguments.length == 3) {
+    if (arguments.length === 3) {
         rules = arguments[1];
         samples = arguments[2];
     }
 
     forEach(samples, (expectedResult, input) => {
-        let testName = `ABNF(${pattern}).exec(${input}) = ${expectedResult}`;
+        const testName = `ABNF(${pattern}).exec(${input}) = ${expectedResult}`;
+
         test(testName, () => {
-            var result = ABNF(pattern, rules).exec(input);
+            const result = ABNF(pattern, rules).exec(input);
             assert.deepEqual(result, expectedResult);
         });
     });
 }
 
 function psuite(name, patterns) {
-    suite(name, function () {
-        forEach(patterns, function (samples, pattern) {
-            ptest(pattern, samples);
-        });
-    });
+    suite(name, () => forEach(patterns, (samples, pattern) => ptest(pattern, samples) ));
 }
 
 suite('ABNF', function () {
     'use strict';
 
-    test('InvalidRule', function () {
-        assert.throws(
-            function () { ABNF('1*') },
-            'SyntaxError: Invalid ABNF rule: 1*');
-    });
+    test('InvalidRule', () => assert.throws(
+      () => { ABNF('1*') },
+      'SyntaxError: Invalid ABNF rule: 1*'
+    ));
 
-    test('ReservedRule', function () {
-        assert.throws(
-            function () { ABNF('DIGIT', { DIGIT: /\d/ }) },
-            'SyntaxError: Invalid ABNF rule: 1*');
-    });
+    test('ReservedRule', () => assert.throws(
+      () => ABNF('DIGIT', { DIGIT: /\d/ }) ,
+      'SyntaxError: Invalid ABNF rule: 1*'
+    ));
 
-    suite('toString', function () {
-        test('text', function () {
-            var p = new ABNF('"123"');
+    suite('toString', () =>
+        test('text', () => {
+            const p = new ABNF('"123"');
             assert.equal(p, '"123"');
-        });
-    });
+        })
+    );
 
-    test('instanceof', function () {
-        var p = new ABNF('"111"');
+    test('instanceof', () => {
+        const p = new ABNF('"111"');
         assert(p instanceof ABNF);
     });
 
-    suite('BasicParsing', function () {
+    suite('BasicParsing',  () => {
         psuite('DoubleQuotedText', {
             '""': {
                 '': '',
@@ -653,9 +648,7 @@ suite('ABNF', function () {
                 '': null
             });
 
-            test('CHAR-NUL', function () {
-                assert.equal(ABNF('CHAR').exec(String.fromCharCode(0)), null);
-            });
+            test('CHAR-NUL',  () => assert.equal(ABNF('CHAR').exec(String.fromCharCode(0)), null) );
 
             ptest('CR', {
                 '\r': '\r',
@@ -781,9 +774,6 @@ suite('ABNF', function () {
             const r = p.exec('123');
 
             assert.deepEqual(r, ['1', '2', '3']);
-
-            console.log(p instanceof ABNF);
-
             assert(p instanceof ABNF);
         });
 
@@ -1575,13 +1565,13 @@ suite('ABNF', function () {
                 });
             });
 
-            test('A<NOT IDENTICAL TO><ALPHA>.', function () {
+            test('A<NOT IDENTICAL TO><ALPHA>.', () => {
                 assert.deepEqual(
                     p.exec('\x41\xE2\x89\xA2\xCE\x91\x2E'),
                     [0x0041, 0x2262, 0x0391, 0x002E]);
             });
 
-            test('the Hangul characters for the Korean word "hangugo"', function () {
+            test('the Hangul characters for the Korean word "hangugo"', () => {
                 assert.deepEqual(
                     p.exec('\xED\x95\x9C\xEA\xB5\xAD\xEC\x96\xB4'),
                     [0xD55C, 0xAD6D, 0xC5B4]);

@@ -84,7 +84,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 exports.rep = exports.seq = exports.any = exports.exc = exports.opt = exports.rgx = exports.txt = exports.Pattern = undefined;
 
@@ -96,97 +96,103 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // parses a known text
 function txt(text) {
-    var name = '"' + text.replace(/"/gm, '\\"') + '"';
-    return new _Pattern2.default(name, function (str, pos) {
-        if (str.substr(pos, text.length) == text) return { res: text, end: pos + text.length };
-    });
+  var name = '"' + text.replace(/"/gm, '\\"') + '"';
+
+  return new _Pattern2.default(name, function (str, pos) {
+    if (str.substr(pos, text.length) === text) {
+      return { res: text, end: pos + text.length };
+    }
+  });
 }
 
 // parses a regular expression
 // LL(k) core parsing functions and combinators.
 // Does not depend on other modules.
 
-function rgx(regexp) {
-    return new _Pattern2.default(regexp + '', function (str, pos) {
-        var m = regexp.exec(str.slice(pos));
-        if (m && m.index === 0) // regex must match at the beginning, so index must be 0
-            return { res: m[0], end: pos + m[0].length };
-    });
-}
+var rgx = function rgx(regexp) {
+  return new _Pattern2.default(regexp + '', function (str, pos) {
+    var m = regexp.exec(str.slice(pos));
+    if (m && m.index === 0) {
+      // regex must match at the beginning, so index must be 0
+      return { res: m[0], end: pos + m[0].length };
+    }
+  });
+};
 
 // parses an optional pattern
-function opt(pattern, defval) {
-    return new _Pattern2.default(pattern + '?', function (str, pos) {
-        return pattern.exec(str, pos) || { res: defval, end: pos };
-    });
-}
+var opt = function opt(pattern, defval) {
+  return new _Pattern2.default(pattern + '?', function (str, pos) {
+    return pattern.exec(str, pos) || { res: defval, end: pos };
+  });
+};
 
 // parses a pattern if it doesn't match another pattern
-function exc(pattern, except) {
-    var name = pattern + ' ~ ' + except;
-    return new _Pattern2.default(name, function (str, pos) {
-        return !except.exec(str, pos) && pattern.exec(str, pos);
-    });
-}
+var exc = function exc(pattern, except) {
+  return new _Pattern2.default(pattern + ' ~ ' + except, function (str, pos) {
+    return !except.exec(str, pos) && pattern.exec(str, pos);
+  });
+};
 
 // parses any of the given patterns
-function any() /* patterns... */{
-    var patterns = [].slice.call(arguments, 0);
-    var name = '(' + patterns.join(' | ') + ')';
+var any = function any() {
+  for (var _len = arguments.length, patterns = Array(_len), _key = 0; _key < _len; _key++) {
+    patterns[_key] = arguments[_key];
+  }
 
-    return new _Pattern2.default(name, function (str, pos) {
-        var r, i;
-        for (i = 0; i < patterns.length && !r; i++) {
-            r = patterns[i].exec(str, pos);
-        }return r;
-    });
-}
+  return new _Pattern2.default('(' + patterns.join(' | ') + ')', function (str, pos) {
+    var r = void 0;
+    for (var i = 0; i < patterns.length && !r; i++) {
+      r = patterns[i].exec(str, pos);
+    }
+    return r;
+  });
+};
 
 // parses a sequence of patterns
-function seq() /* patterns... */{
-    var patterns = [].slice.call(arguments, 0);
-    var name = '(' + patterns.join(' ') + ')';
+var seq = function seq() {
+  for (var _len2 = arguments.length, patterns = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    patterns[_key2] = arguments[_key2];
+  }
 
-    return new _Pattern2.default(name, function (str, pos) {
-        var i,
-            r,
-            end = pos,
-            res = [];
+  return new _Pattern2.default('(' + patterns.join(' ') + ')', function (str, pos) {
+    var r = void 0,
+        end = pos,
+        res = [];
 
-        for (i = 0; i < patterns.length; i++) {
-            r = patterns[i].exec(str, end);
-            if (!r) return;
-            res.push(r.res);
-            end = r.end;
-        }
+    for (var i = 0; i < patterns.length; i++) {
+      r = patterns[i].exec(str, end);
+      if (!r) return;
+      res.push(r.res);
+      end = r.end;
+    }
 
-        return { res: res, end: end };
-    });
-}
+    return { res: res, end: end };
+  });
+};
 
 // parses a (separated) repetition of a pattern
-function rep(pattern, separator, min, max) {
-    var separated = !separator ? pattern : seq(separator, pattern).then(function (r) {
-        return r[1];
-    });
+var rep = function rep(pattern, separator, min, max) {
+  var separated = !separator ? pattern : seq(separator, pattern).then(function (r) {
+    return r[1];
+  });
 
-    if (!isFinite(min)) min = 1;
-    if (!isFinite(max)) max = Infinity;
+  if (!isFinite(min)) min = 1;
+  if (!isFinite(max)) max = Infinity;
 
-    return new _Pattern2.default(pattern + '*', function (str, pos) {
-        var res = [],
-            end = pos,
-            r = pattern.exec(str, end);
+  return new _Pattern2.default(pattern + '*', function (str, pos) {
+    var res = [],
+        end = pos,
+        r = pattern.exec(str, end);
 
-        while (r && r.end > end && res.length < max) {
-            res.push(r.res);
-            end = r.end;
-            r = separated.exec(str, end);
-        }
+    while (r && r.end > end && res.length < max) {
+      res.push(r.res);
+      end = r.end;
+      r = separated.exec(str, end);
+    }
 
-        return res.length >= min ? { res: res, end: end } : null;
-    });
-}
+    return res.length >= min ? { res: res, end: end } : null;
+  });
+};
 
 exports.Pattern = _Pattern2.default;
 exports.txt = txt;
@@ -248,8 +254,6 @@ var ABNF = function (_Pattern) {
     function ABNF(definition, rules) {
         _classCallCheck(this, ABNF);
 
-        var refs = {};
-
         var parse = function parse(abnf) {
             var r = ABNF.pattern.exec(abnf);
             if (r) return r;
@@ -300,17 +304,16 @@ var ABNF = function (_Pattern) {
             });
         };
 
-        var pattern = void 0,
-            name = void 0;
+        var refs = {};
 
         if (rules instanceof Function) rules.call(rules = {}, build);else rules = Object.create(rules || {});
 
-        for (name in ABNF.rules) {
+        for (var name in ABNF.rules) {
             if (name in rules) throw new SyntaxError('Rule name is reserved: ' + name);else rules[name] = ABNF.rules[name];
-        }pattern = build(definition);
+        }var pattern = build(definition);
 
-        for (name in refs) {
-            if (!rules[name]) throw new SyntaxError('Rule is not defined: ' + name);
+        for (var _name in refs) {
+            if (!rules[_name]) throw new SyntaxError('Rule is not defined: ' + _name);
         }return _possibleConstructorReturn(this, (ABNF.__proto__ || Object.getPrototypeOf(ABNF)).call(this, pattern + '', pattern.exec));
     }
 
@@ -374,7 +377,7 @@ ABNF.pattern = function () {
     });
 
     rules.any = (0, _core.rep)(ref('seq'), (0, _core.rgx)(/\s*\/\s*/)).then(function (r) {
-        return r.length == 1 ? r[0] : { any: r };
+        return r.length === 1 ? r[0] : { any: r };
     });
 
     rules.sep = (0, _core.seq)((0, _core.rgx)(/\s*\{\s*/), ref('any'), (0, _core.rgx)(/\s*\}\s*/)).select(1);
@@ -584,7 +587,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 // A set of predefined transforms for Pattern.
-// Extends Pattern.prototype.
 
 var Pattern = function () {
   function Pattern(name, exec) {
@@ -680,9 +682,11 @@ var Pattern = function () {
     })
   }, {
     key: 'merge',
-    value: function merge(separator) {
+    value: function merge() {
+      var separator = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
       return this.then(function (r) {
-        return r.join(separator || '');
+        return r.join(separator);
       });
     }
   }, {
@@ -710,9 +714,9 @@ var Pattern = function () {
     key: 'join',
     value: function join(key, val) {
       return this.then(function (r) {
-        var m = {},
-            i;
-        for (i = 0; i < r.length; i++) {
+        var m = {};
+
+        for (var i = 0; i < r.length; i++) {
           m[r[i][key]] = r[i][val];
         }
 
@@ -723,11 +727,11 @@ var Pattern = function () {
     key: 'flatten',
     value: function flatten() {
       var flatten = function flatten(a) {
-        var f = [],
-            i;
-        for (i = 0; i < a.length; i++) {
-          if (a[i] instanceof Array) f = f.concat(flatten(a[i]));else f.push(a[i]);
-        }return f;
+        return a.reduce(function (accum, el) {
+          if (Array.isArray(el)) accum = accum.concat(flatten(el));else accum.push(el);
+
+          return accum;
+        }, []);
       };
 
       return this.then(function (r) {

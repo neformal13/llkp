@@ -1,41 +1,39 @@
 // A set of predefined transforms for Pattern.
-// Extends Pattern.prototype.
 
 class Pattern {
   constructor (name, exec) {
     this.params = {name, exec};
 
-    this.exec = function (str, pos) {
-      var r = exec(str, pos || 0);
+    this.exec = (str, pos) => {
+      let r = exec(str, pos || 0);
       return pos >= 0 ? r : !r ? null : r.end != str.length ? null : r.res;
     };
 
-    this.then = function (transform) {
-      return new Pattern(name, function (str, pos) {
-        var r = exec(str, pos);
+    this.then = (transform)  =>
+      new Pattern(name, function (str, pos) {
+        let r = exec(str, pos);
         return r && { res: transform(r.res, str.slice(pos, r.end)), end: r.end };
       });
-    };
   }
 
   toString () {
     return this.params.name;
-  };
+  }
 
   make (value) {
-    return this.then( () => value );
+    return this.then(() => value );
   }
 
   select (index) {
-    return this.then(  r => r ? r[index] : undefined );
+    return this.then(r => r ? r[index] : undefined );
   }
 
   as (name) {
-    return this.then( r => ({[name]: r}));
+    return this.then(r => ({[name]: r}));
   }
 
   map (mapping) {
-    return this.then( r => {
+    return this.then(r => {
       let m = {}, i;
       for (i in mapping) {
         m[i] = r[mapping[i]];
@@ -46,15 +44,15 @@ class Pattern {
   }
 
   parseInt(radix) {
-    return this.then( r =>  parseInt(r, radix));
+    return this.then(r =>  parseInt(r, radix));
   }
 
   parseFloat() {
-    return this.then( r => parseFloat(r));
+    return this.then(r => parseFloat(r));
   }
 
-  merge (separator) {
-    return this.then((r) =>  r.join(separator || '') );
+  merge (separator = '') {
+    return this.then(r =>  r.join(separator) );
   }
 
   trim() {
@@ -71,8 +69,9 @@ class Pattern {
 
   join (key, val) {
     return this.then( r => {
-      var m = {}, i;
-      for (i = 0; i < r.length; i++) {
+      let m = {};
+
+      for (let i = 0; i < r.length; i++) {
         m[r[i][key]] = r[i][val];
       }
 
@@ -81,19 +80,15 @@ class Pattern {
   }
 
   flatten () {
-    const flatten = (a) => {
-      var f = [], i;
-      for (i = 0; i < a.length; i++)
-        if (a[i] instanceof Array)
-          f = f.concat(flatten(a[i]));
-        else
-          f.push(a[i]);
-      return f;
-    };
+    const flatten = a =>
+      a.reduce((accum, el) => {
+        if (Array.isArray(el)) accum = accum.concat(flatten(el));
+        else accum.push(el);
 
-    return this.then(function (r) {
-      return flatten(r);
-    });
+        return accum;
+      }, []);
+
+    return this.then(r => flatten(r));
   }
 }
 
