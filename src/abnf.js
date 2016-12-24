@@ -10,127 +10,114 @@ import {
   seq,
   rep} from './core';
 
-function numstr(prefix, regex, radix) {
-    var num = rgx(regex).parseInt(radix);
-    var rng = seq(num, txt('-'), num).map({ min: 0, max: 2 });
-    var chr = any(rng, num.as('num'));
+const numstr = (prefix, regex, radix) => {
+    const num = rgx(regex).parseInt(radix);
+    const rng = seq(num, txt('-'), num).map({min: 0, max: 2});
+    const chr = any(rng, num.as('num'));
     return seq(txt(prefix), rep(chr, txt('.'), 1)).select(1);
-}
+};
 
-function hs(n) {
-    var s = n.toString(16);
+const hs = n => {
+    const s = n.toString(16);
     return ['', '\\x0', '\\x', '\\u0', '\\u'][s.length] + s;
-}
+};
 
-function str(string) {
-    var c = string.map(function (s) {
-        return 'num' in s ? hs(s.num) : hs(s.min) + '-' + hs(s.max);
-    });
-
+const str = string => {
+    const c = string.map( s => 'num' in s ? hs(s.num) : hs(s.min) + '-' + hs(s.max) );
     return rgx(new RegExp('[' + c.join('][') + ']'));
-}
+};
 
-function quoted(lq, rq) {
-    var regexp = new RegExp(lq + '[\\x20-\\x7E]*?' + rq);
-    return rgx(regexp).then(function (s) { return s.slice(+1, -1) });
-}
+const quoted = (lq, rq) => {
+    const regexp = new RegExp(lq + '[\\x20-\\x7E]*?' + rq);
+    return rgx(regexp)
+      .then(s => s.slice(+1, -1) );
+};
 
-function ABNF(definition, rules) {
-    var refs = {};
+class ABNF extends Pattern {
+  constructor (definition, rules) {
+    let refs = {};
 
-    function parse(abnf) {
-        var r = ABNF.pattern.exec(abnf);
-        if (r) return r;
-        throw new SyntaxError('Invalid ABNF rule: ' + abnf);
-    }
+    const parse = abnf => {
+      const r = ABNF.pattern.exec(abnf);
+      if (r) return r;
+      throw new SyntaxError('Invalid ABNF rule: ' + abnf);
+    };
 
-    function compile(ast) {
-        if ('seq' in ast) return buildseq(ast);
-        if ('any' in ast) return any.apply(null, ast.any.map(compile));
-        if ('rep' in ast) return buildrep(ast);
-        if ('opt' in ast) return opt(compile(ast.opt));
-        if ('str' in ast) return str(ast.str);
-        if ('txt' in ast) return txt(ast.txt);
-        if ('rgx' in ast) return rgx(new RegExp(ast.rgx));
-        if ('exc' in ast) return exc.apply(null, ast.exc.map(compile));
-        if ('ref' in ast) return ref(ast.ref);
-        if ('sel' in ast) return compile(ast.sel).select(ast.key);
-    }
+    const compile = ast => {
+      if ('seq' in ast) return buildseq(ast);
+      if ('any' in ast) return any.apply(null, ast.any.map(compile));
+      if ('rep' in ast) return buildrep(ast);
+      if ('opt' in ast) return opt(compile(ast.opt));
+      if ('str' in ast) return str(ast.str);
+      if ('txt' in ast) return txt(ast.txt);
+      if ('rgx' in ast) return rgx(new RegExp(ast.rgx));
+      if ('exc' in ast) return exc.apply(null, ast.exc.map(compile));
+      if ('ref' in ast) return ref(ast.ref);
+      if ('sel' in ast) return compile(ast.sel).select(ast.key);
+    };
 
-    function build(definition, name) {
-        if (definition instanceof RegExp)
-            return rgx(definition);
+    const build = (definition, name) => {
+      if (definition instanceof RegExp)
+        return rgx(definition);
 
-        if (definition instanceof Function)
-            return new Pattern(name, definition);
+      if (definition instanceof Function)
+        return new Pattern(name, definition);
 
-        if (definition instanceof Pattern)
-            return definition;
+      if (definition instanceof Pattern)
+        return definition;
 
-        return compile(parse(definition + ''));
-    }
+      return compile(parse(definition + ''));
+    };
 
-    function buildseq(ast) {
-        var p = seq.apply(null, ast.seq.map(compile));
-        return ast.map ? p.map(ast.map) : p;
-    }
+    const buildseq = ast => {
+      const p = seq.apply(null, ast.seq.map(compile));
+      return ast.map ? p.map(ast.map) : p;
+    };
 
-    function buildrep(ast) {
-        var p = rep(compile(ast.rep), ast.sep && compile(ast.sep), ast.min, ast.max);
-        return ast.key && ast.val ? p.join(ast.key, ast.val) : p;
-    }
+    const buildrep = ast => {
+      const p = rep(compile(ast.rep), ast.sep && compile(ast.sep), ast.min, ast.max);
+      return ast.key && ast.val ? p.join(ast.key, ast.val) : p;
+    };
 
-    function ref(name) {
-        if (refs[name])
-            return refs[name];
+    const ref = name => {
+      if (refs[name]) return refs[name];
 
-        refs[name] = null;
+      refs[name] = null;
 
-        return new Pattern(name, function (str, pos) {
-            refs[name] = refs[name] || build(rules[name], name);
-            return refs[name].exec(str, pos);
-        });
-    }
+      return new Pattern(name, (str, pos) => {
+        refs[name] = refs[name] || build(rules[name], name);
+        return refs[name].exec(str, pos);
+      });
+    };
 
-    function init(self) {
-        var pattern, name;
+    let pattern, name;
 
-        if (rules instanceof Function)
-            rules.call(rules = {}, build);
-        else
-            rules = Object.create(rules || {});
-
-        for (name in ABNF.rules)
-            if (name in rules)
-                throw new SyntaxError('Rule name is reserved: ' + name);
-            else
-                rules[name] = ABNF.rules[name];
-
-        pattern = build(definition);
-
-        for (name in refs)
-            if (!rules[name])
-                throw new SyntaxError('Rule is not defined: ' + name);
-
-        Pattern.call(self, pattern + '', pattern.exec);
-    }
-
-    if (this instanceof ABNF)
-        init(this);
+    if (rules instanceof Function)
+        rules.call(rules = {}, build);
     else
-        return new ABNF(definition, rules);
-}
+        rules = Object.create(rules || {});
 
-ABNF.prototype = Pattern.prototype;
+    for (name in ABNF.rules)
+        if (name in rules)
+          throw new SyntaxError('Rule name is reserved: ' + name);
+        else
+          rules[name] = ABNF.rules[name];
+
+    pattern = build(definition);
+
+    for (name in refs)
+        if (!rules[name])
+          throw new SyntaxError('Rule is not defined: ' + name);
+
+    super(pattern + '', pattern.exec);
+  }
+
+}
 
 ABNF.pattern = (function () {
-    var rules = {};
+    let rules = {};
 
-    function ref(name) {
-        return rules[name] || new Pattern(name, function (str, pos) {
-            return rules[name].exec(str, pos);
-        });
-    }
+    const ref = name => rules[name] || new Pattern(name, (str, pos) => rules[name].exec(str, pos));
 
     rules.hexstr = numstr('x', /[0-9a-f]+/i, 16);
     rules.decstr = numstr('d', /[0-9]+/, 10);
@@ -141,10 +128,19 @@ ABNF.pattern = (function () {
     rules.key = rgx(/[a-z0-9_]+/i);
 
     rules.quantifier = any(
-        seq(rgx(/\d*/), txt('*'), rgx(/\d*/)).then(function (r) { return { min: +r[0] || 0, max: +r[2] || +Infinity } }),
-        rgx(/\d+/).then(function (r) { return { min: +r, max: +r } }));
+        seq(rgx(/\d*/),
+        txt('*'),
+        rgx(/\d*/)).then( r =>  ({ min: +r[0] || 0, max: +r[2] || +Infinity }) ),
+        rgx(/\d+/).then( r => ({ min: +r, max: +r }) )
+    );
 
-    rules.join = seq(txt('<'), ref('key'), rgx(/\s*:\s*/), ref('key'), txt('>')).map({ key: 1, val: 3 });
+    rules.join = seq(
+      txt('<'),
+      ref('key'),
+      rgx(/\s*:\s*/),
+      ref('key'),
+      txt('>')
+    ).map({ key: 1, val: 3 });
 
     rules.rep = any(
         seq(ref('quantifier'), opt(ref('sep')), opt(ref('join')), ref('element')).then(function (r) {
@@ -164,7 +160,7 @@ ABNF.pattern = (function () {
 
     rules.seq = rep(seq(opt(ref('lbl')), ref('exc')), rgx(/\s*/))
         .then(function (r) {
-            var i, m, s = [];
+            let i, m, s = [];
 
             for (i = 0; i < r.length; i++) {
                 s.push(r[i][1]);
@@ -193,7 +189,8 @@ ABNF.pattern = (function () {
         rgx(/[a-zA-Z][a-zA-Z0-9\-]*/).as('ref'),
         seq(txt('%'), any(ref('hexstr'), ref('decstr'), ref('binstr'))).select(1).as('str'),
         ref('sgr'),
-        seq(txt('?'), ref('element')).select(1).as('opt'));
+        seq(txt('?'), ref('element')).select(1).as('opt')
+    );
 
     return ref('any');
 })();
@@ -219,4 +216,12 @@ ABNF.rules = {
     WSP: 'SP / HTAB' // white space
 };
 
-export default ABNF;
+/**
+ * With wrapper you can call ABNF in both cases:
+ *   new ABNF(...)
+ *   ABNF(...);
+ */
+let wrapper = function (definition, rules) { return new ABNF(definition, rules); };
+wrapper.prototype = ABNF.prototype;
+
+export default wrapper;

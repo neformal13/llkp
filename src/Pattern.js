@@ -3,9 +3,7 @@
 
 class Pattern {
   constructor (name, exec) {
-    this.toString = function () {
-      return name;
-    };
+    this.params = {name, exec};
 
     this.exec = function (str, pos) {
       var r = exec(str, pos || 0);
@@ -20,82 +18,70 @@ class Pattern {
     };
   }
 
+  toString () {
+    return this.params.name;
+  };
+
   make (value) {
-    return this.then(function () {
-      return value;
-    });
+    return this.then( () => value );
   }
 
   select (index) {
-    return this.then(function (r) {
-      return r ? r[index] : void 0;
-    });
+    return this.then(  r => r ? r[index] : undefined );
   }
 
   as (name) {
-    return this.then(function (r) {
-      var m = {};
-      m[name] = r;
-      return m;
-    });
+    return this.then( r => ({[name]: r}));
   }
 
   map (mapping) {
-    return this.then(function (r) {
-      var m = {}, i;
-      for (i in mapping)
+    return this.then( r => {
+      let m = {}, i;
+      for (i in mapping) {
         m[i] = r[mapping[i]];
+      }
+
       return m;
     });
   }
 
   parseInt(radix) {
-    return this.then(function (r) {
-      return parseInt(r, radix);
-    });
+    return this.then( r =>  parseInt(r, radix));
   }
 
   parseFloat() {
-    return this.then(function (r) {
-      return parseFloat(r);
-    });
+    return this.then( r => parseFloat(r));
   }
 
   merge (separator) {
-    return this.then(function (r) {
-      return r.join(separator || '');
-    });
+    return this.then((r) =>  r.join(separator || '') );
   }
 
   trim() {
-    return this.then(function (r) {
-      return r.trim();
-    });
+    return this.then(r =>  r.trim());
   }
 
   slice (start, end) {
-    return this.then(function (r) {
-      return r.slice(start, end);
-    });
+    return this.then( r =>  r.slice(start, end) );
   }
 
   text () {
-    return this.then(function (r, s) {
-      return s;
-    });
+    return this.then( (r, s) => s );
   }
 
   join (key, val) {
-    return this.then(function (r) {
+    return this.then( r => {
       var m = {}, i;
-      for (i = 0; i < r.length; i++)
+      for (i = 0; i < r.length; i++) {
         m[r[i][key]] = r[i][val];
+      }
+
       return m;
     });
   }
 
   flatten () {
-    function flatten(a) {
+    const flatten = (a) => {
       var f = [], i;
       for (i = 0; i < a.length; i++)
         if (a[i] instanceof Array)
@@ -103,7 +89,7 @@ class Pattern {
         else
           f.push(a[i]);
       return f;
-    }
+    };
 
     return this.then(function (r) {
       return flatten(r);

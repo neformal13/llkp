@@ -210,88 +210,98 @@ Object.defineProperty(exports, "__esModule", {
 
 var _core = __webpack_require__(0);
 
-function numstr(prefix, regex, radix) {
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } // ABNF (RFC 5234) syntax of LL(k) grammars.
+
+var numstr = function numstr(prefix, regex, radix) {
     var num = (0, _core.rgx)(regex).parseInt(radix);
     var rng = (0, _core.seq)(num, (0, _core.txt)('-'), num).map({ min: 0, max: 2 });
     var chr = (0, _core.any)(rng, num.as('num'));
     return (0, _core.seq)((0, _core.txt)(prefix), (0, _core.rep)(chr, (0, _core.txt)('.'), 1)).select(1);
-} // ABNF (RFC 5234) syntax of LL(k) grammars.
+};
 
-function hs(n) {
+var hs = function hs(n) {
     var s = n.toString(16);
     return ['', '\\x0', '\\x', '\\u0', '\\u'][s.length] + s;
-}
+};
 
-function str(string) {
+var str = function str(string) {
     var c = string.map(function (s) {
         return 'num' in s ? hs(s.num) : hs(s.min) + '-' + hs(s.max);
     });
-
     return (0, _core.rgx)(new RegExp('[' + c.join('][') + ']'));
-}
+};
 
-function quoted(lq, rq) {
+var quoted = function quoted(lq, rq) {
     var regexp = new RegExp(lq + '[\\x20-\\x7E]*?' + rq);
     return (0, _core.rgx)(regexp).then(function (s) {
         return s.slice(+1, -1);
     });
-}
+};
 
-function ABNF(definition, rules) {
-    var refs = {};
+var ABNF = function (_Pattern) {
+    _inherits(ABNF, _Pattern);
 
-    function parse(abnf) {
-        var r = ABNF.pattern.exec(abnf);
-        if (r) return r;
-        throw new SyntaxError('Invalid ABNF rule: ' + abnf);
-    }
+    function ABNF(definition, rules) {
+        _classCallCheck(this, ABNF);
 
-    function compile(ast) {
-        if ('seq' in ast) return buildseq(ast);
-        if ('any' in ast) return _core.any.apply(null, ast.any.map(compile));
-        if ('rep' in ast) return buildrep(ast);
-        if ('opt' in ast) return (0, _core.opt)(compile(ast.opt));
-        if ('str' in ast) return str(ast.str);
-        if ('txt' in ast) return (0, _core.txt)(ast.txt);
-        if ('rgx' in ast) return (0, _core.rgx)(new RegExp(ast.rgx));
-        if ('exc' in ast) return _core.exc.apply(null, ast.exc.map(compile));
-        if ('ref' in ast) return ref(ast.ref);
-        if ('sel' in ast) return compile(ast.sel).select(ast.key);
-    }
+        var refs = {};
 
-    function build(definition, name) {
-        if (definition instanceof RegExp) return (0, _core.rgx)(definition);
+        var parse = function parse(abnf) {
+            var r = ABNF.pattern.exec(abnf);
+            if (r) return r;
+            throw new SyntaxError('Invalid ABNF rule: ' + abnf);
+        };
 
-        if (definition instanceof Function) return new _core.Pattern(name, definition);
+        var compile = function compile(ast) {
+            if ('seq' in ast) return buildseq(ast);
+            if ('any' in ast) return _core.any.apply(null, ast.any.map(compile));
+            if ('rep' in ast) return buildrep(ast);
+            if ('opt' in ast) return (0, _core.opt)(compile(ast.opt));
+            if ('str' in ast) return str(ast.str);
+            if ('txt' in ast) return (0, _core.txt)(ast.txt);
+            if ('rgx' in ast) return (0, _core.rgx)(new RegExp(ast.rgx));
+            if ('exc' in ast) return _core.exc.apply(null, ast.exc.map(compile));
+            if ('ref' in ast) return ref(ast.ref);
+            if ('sel' in ast) return compile(ast.sel).select(ast.key);
+        };
 
-        if (definition instanceof _core.Pattern) return definition;
+        var build = function build(definition, name) {
+            if (definition instanceof RegExp) return (0, _core.rgx)(definition);
 
-        return compile(parse(definition + ''));
-    }
+            if (definition instanceof Function) return new _core.Pattern(name, definition);
 
-    function buildseq(ast) {
-        var p = _core.seq.apply(null, ast.seq.map(compile));
-        return ast.map ? p.map(ast.map) : p;
-    }
+            if (definition instanceof _core.Pattern) return definition;
 
-    function buildrep(ast) {
-        var p = (0, _core.rep)(compile(ast.rep), ast.sep && compile(ast.sep), ast.min, ast.max);
-        return ast.key && ast.val ? p.join(ast.key, ast.val) : p;
-    }
+            return compile(parse(definition + ''));
+        };
 
-    function ref(name) {
-        if (refs[name]) return refs[name];
+        var buildseq = function buildseq(ast) {
+            var p = _core.seq.apply(null, ast.seq.map(compile));
+            return ast.map ? p.map(ast.map) : p;
+        };
 
-        refs[name] = null;
+        var buildrep = function buildrep(ast) {
+            var p = (0, _core.rep)(compile(ast.rep), ast.sep && compile(ast.sep), ast.min, ast.max);
+            return ast.key && ast.val ? p.join(ast.key, ast.val) : p;
+        };
 
-        return new _core.Pattern(name, function (str, pos) {
-            refs[name] = refs[name] || build(rules[name], name);
-            return refs[name].exec(str, pos);
-        });
-    }
+        var ref = function ref(name) {
+            if (refs[name]) return refs[name];
 
-    function init(self) {
-        var pattern, name;
+            refs[name] = null;
+
+            return new _core.Pattern(name, function (str, pos) {
+                refs[name] = refs[name] || build(rules[name], name);
+                return refs[name].exec(str, pos);
+            });
+        };
+
+        var pattern = void 0,
+            name = void 0;
 
         if (rules instanceof Function) rules.call(rules = {}, build);else rules = Object.create(rules || {});
 
@@ -301,22 +311,20 @@ function ABNF(definition, rules) {
 
         for (name in refs) {
             if (!rules[name]) throw new SyntaxError('Rule is not defined: ' + name);
-        }_core.Pattern.call(self, pattern + '', pattern.exec);
+        }return _possibleConstructorReturn(this, (ABNF.__proto__ || Object.getPrototypeOf(ABNF)).call(this, pattern + '', pattern.exec));
     }
 
-    if (this instanceof ABNF) init(this);else return new ABNF(definition, rules);
-}
-
-ABNF.prototype = _core.Pattern.prototype;
+    return ABNF;
+}(_core.Pattern);
 
 ABNF.pattern = function () {
     var rules = {};
 
-    function ref(name) {
+    var ref = function ref(name) {
         return rules[name] || new _core.Pattern(name, function (str, pos) {
             return rules[name].exec(str, pos);
         });
-    }
+    };
 
     rules.hexstr = numstr('x', /[0-9a-f]+/i, 16);
     rules.decstr = numstr('d', /[0-9]+/, 10);
@@ -350,8 +358,8 @@ ABNF.pattern = function () {
     });
 
     rules.seq = (0, _core.rep)((0, _core.seq)((0, _core.opt)(ref('lbl')), ref('exc')), (0, _core.rgx)(/\s*/)).then(function (r) {
-        var i,
-            m,
+        var i = void 0,
+            m = void 0,
             s = [];
 
         for (i = 0; i < r.length; i++) {
@@ -403,7 +411,17 @@ ABNF.rules = {
     WSP: 'SP / HTAB' // white space
 };
 
-exports.default = ABNF;
+/**
+ * With wrapper you can call ABNF in both cases:
+ *   new ABNF(...)
+ *   ABNF(...);
+ */
+var wrapper = function wrapper(definition, rules) {
+    return new ABNF(definition, rules);
+};
+wrapper.prototype = ABNF.prototype;
+
+exports.default = wrapper;
 
 /***/ },
 /* 2 */
@@ -561,6 +579,8 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 // A set of predefined transforms for Pattern.
@@ -570,9 +590,7 @@ var Pattern = function () {
   function Pattern(name, exec) {
     _classCallCheck(this, Pattern);
 
-    this.toString = function () {
-      return name;
-    };
+    this.params = { name: name, exec: exec };
 
     this.exec = function (str, pos) {
       var r = exec(str, pos || 0);
@@ -588,6 +606,11 @@ var Pattern = function () {
   }
 
   _createClass(Pattern, [{
+    key: 'toString',
+    value: function toString() {
+      return this.params.name;
+    }
+  }, {
     key: 'make',
     value: function make(value) {
       return this.then(function () {
@@ -598,16 +621,14 @@ var Pattern = function () {
     key: 'select',
     value: function select(index) {
       return this.then(function (r) {
-        return r ? r[index] : void 0;
+        return r ? r[index] : undefined;
       });
     }
   }, {
     key: 'as',
     value: function as(name) {
       return this.then(function (r) {
-        var m = {};
-        m[name] = r;
-        return m;
+        return _defineProperty({}, name, r);
       });
     }
   }, {
@@ -615,10 +636,12 @@ var Pattern = function () {
     value: function map(mapping) {
       return this.then(function (r) {
         var m = {},
-            i;
+            i = void 0;
         for (i in mapping) {
           m[i] = r[mapping[i]];
-        }return m;
+        }
+
+        return m;
       });
     }
   }, {
@@ -691,19 +714,21 @@ var Pattern = function () {
             i;
         for (i = 0; i < r.length; i++) {
           m[r[i][key]] = r[i][val];
-        }return m;
+        }
+
+        return m;
       });
     }
   }, {
     key: 'flatten',
     value: function flatten() {
-      function flatten(a) {
+      var flatten = function flatten(a) {
         var f = [],
             i;
         for (i = 0; i < a.length; i++) {
           if (a[i] instanceof Array) f = f.concat(flatten(a[i]));else f.push(a[i]);
         }return f;
-      }
+      };
 
       return this.then(function (r) {
         return flatten(r);

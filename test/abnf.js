@@ -1,10 +1,7 @@
 import assert from 'assert';
 import ABNF from '../src/abnf';
 
-function forEach(dict, fn) {
-    for (var key in dict)
-        fn(dict[key], key);
-}
+const forEach = (dict, fn) => {for (let key in dict) {fn(dict[key], key); }};
 
 function ptest(pattern, samples) {
     var rules = {
@@ -17,9 +14,9 @@ function ptest(pattern, samples) {
         samples = arguments[2];
     }
 
-    forEach(samples, function (expectedResult, input) {
-        var testName = 'ABNF(' + pattern + ').exec(' + input + ') = ' + expectedResult;
-        test(testName, function () {
+    forEach(samples, (expectedResult, input) => {
+        let testName = `ABNF(${pattern}).exec(${input}) = ${expectedResult}`;
+        test(testName, () => {
             var result = ABNF(pattern, rules).exec(input);
             assert.deepEqual(result, expectedResult);
         });
@@ -778,12 +775,15 @@ suite('ABNF', function () {
         });
     });
 
-    suite('Usage', function () {
-        test('New', function () {
-            var p = new ABNF('1*digit', { 'digit': '%x30-39' });
-            var r = p.exec('123');
+    suite('Usage', () => {
+        test('New',  () => {
+            const p = new ABNF('1*digit', {'digit': '%x30-39'});
+            const r = p.exec('123');
 
             assert.deepEqual(r, ['1', '2', '3']);
+
+            console.log(p instanceof ABNF);
+
             assert(p instanceof ABNF);
         });
 
@@ -1650,13 +1650,9 @@ suite('ABNF', function () {
         });
 
         suite('Expression', function () {
-            var p;
+            let p;
 
-            function etest(input, ast) {
-                test(input, function () {
-                    assert.deepEqual(p.exec(input), ast);
-                });
-            }
+            const  etest = (input, ast) => test(input, () => assert.deepEqual(p.exec(input), ast) );
 
             setup(function () {
                 // This is an LL grammar for arithmetic expressions.
