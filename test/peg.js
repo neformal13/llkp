@@ -6,7 +6,7 @@ suite('PEG', function () {
 
     console.inspect = function (object) {
         var inspect = require('util').inspect;
-        return console.log(inspect(object, { depth: null }));
+        return console.log(inspect(object, {depth: null}));
     };
 
     function forEach(dict, fn) {
@@ -133,7 +133,7 @@ suite('PEG', function () {
             });
 
             ptest('tag:[a-z]+ val:("=" x:[0-9]+).x', {
-                'abc=123': { tag: ['a', 'b', 'c'], val: ['1', '2', '3'] },
+                'abc=123': {tag: ['a', 'b', 'c'], val: ['1', '2', '3']},
             });
         });
 
@@ -168,19 +168,19 @@ suite('PEG', function () {
             });
 
             ptest('word:[a-z]+', {
-                'abc': { word: ['a', 'b', 'c'] },
-                'd': { word: ['d'] },
+                'abc': {word: ['a', 'b', 'c']},
+                'd': {word: ['d']},
                 '': null
             });
 
             ptest('a:[0-9] / b:[a-z]', {
-                '4': { a: '4' },
-                't': { b: 't' },
+                '4': {a: '4'},
+                't': {b: 't'},
                 '': null
             });
 
             ptest('a:[0-9] b:[a-z]', {
-                '7g': { a: '7', b: 'g' },
+                '7g': {a: '7', b: 'g'},
                 'rr': null
             });
         });
@@ -233,13 +233,17 @@ suite('PEG', function () {
     suite('ErrorHandling', function () {
         test('InvalidRule', function () {
             assert.throws(
-                function () { PEG('[a-') },
+                function () {
+                    PEG('[a-')
+                },
                 'SyntaxError: Invalid PEG rule: [a-');
         });
 
         test('UndefinedRule', function () {
             assert.throws(
-                function () { PEG('a') },
+                function () {
+                    PEG('a')
+                },
                 'SyntaxError: Rule is not defined: a');
         });
     });
@@ -249,7 +253,7 @@ suite('PEG', function () {
             var p = PEG('c', {
                 c: function (str, pos) {
                     if (str.charAt(pos) == 'w')
-                        return { res: str.charAt(pos).toUpperCase(), end: pos + 1 };
+                        return {res: str.charAt(pos).toUpperCase(), end: pos + 1};
                 }
             });
 
@@ -289,8 +293,8 @@ suite('PEG', function () {
                 "true": true,
                 "false": false,
                 "null": null,
-                "object": { "a": +1, "b": -2, "c": 0 },
-                "array": [{}, { "x": "y" }, "21", 23.22, [], "", null, true, false]
+                "object": {"a": +1, "b": -2, "c": 0},
+                "array": [{}, {"x": "y"}, "21", 23.22, [], "", null, true, false]
             };
 
             assert.deepEqual(pattern.exec(JSON.stringify(source)), source);
@@ -318,21 +322,21 @@ suite('PEG', function () {
             }
 
             function decodeEntity(s) {
-                return { 'nbsp': '\x0A', 'quot': '"', 'lt': '<', 'gt': '>', 'amp': '&' }[s];
+                return {'nbsp': '\x0A', 'quot': '"', 'lt': '<', 'gt': '>', 'amp': '&'}[s];
             }
 
             var parsed = pattern.exec(
                 '<groups>' +
-                    '<group name="Sales">' +
-                        '<user name="John Doe" title="Senior Salesman" />' +
-                        '<user name="John Smith" title="Junior Salesman" />' +
-                        '<user name="Joe Smith" title="Director of Sales">' +
-                            '<group name="Reports">' +
-                                'TBD &lt;&#32;&gt;' +
-                            '</group>' +
-                        '</user>' +
-                    '</group>' +
-                    '  <   group   name  =  "New"   tag =   "abc &quot; def&#32;ghi"   />   ' +
+                '<group name="Sales">' +
+                '<user name="John Doe" title="Senior Salesman" />' +
+                '<user name="John Smith" title="Junior Salesman" />' +
+                '<user name="Joe Smith" title="Director of Sales">' +
+                '<group name="Reports">' +
+                'TBD &lt;&#32;&gt;' +
+                '</group>' +
+                '</user>' +
+                '</group>' +
+                '  <   group   name  =  "New"   tag =   "abc &quot; def&#32;ghi"   />   ' +
                 '</groups>');
 
             assert.deepEqual(parsed, {
@@ -341,23 +345,23 @@ suite('PEG', function () {
                 nodes: [
                     {
                         name: 'group',
-                        attrs: { name: 'Sales' },
+                        attrs: {name: 'Sales'},
                         nodes: [
                             {
                                 name: 'user',
-                                attrs: { name: 'John Doe', title: 'Senior Salesman' }
+                                attrs: {name: 'John Doe', title: 'Senior Salesman'}
                             },
                             {
                                 name: 'user',
-                                attrs: { name: 'John Smith', title: 'Junior Salesman' }
+                                attrs: {name: 'John Smith', title: 'Junior Salesman'}
                             },
                             {
                                 name: 'user',
-                                attrs: { name: 'Joe Smith', title: 'Director of Sales' },
+                                attrs: {name: 'Joe Smith', title: 'Director of Sales'},
                                 nodes: [
                                     {
                                         name: 'group',
-                                        attrs: { name: 'Reports' },
+                                        attrs: {name: 'Reports'},
                                         nodes: ['TBD < >']
                                     }
                                 ]
@@ -367,7 +371,7 @@ suite('PEG', function () {
                     '  ',
                     {
                         name: 'group',
-                        attrs: { name: 'New', tag: 'abc " def ghi' }
+                        attrs: {name: 'New', tag: 'abc " def ghi'}
                     },
                     '   '
                 ]

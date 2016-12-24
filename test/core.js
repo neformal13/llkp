@@ -1,16 +1,7 @@
-require('babel-core/register')({
-
-});
+require('babel-core/register')({});
 
 import assert from 'assert';
-import {
-  txt,
-  rgx,
-  opt,
-  exc,
-  any,
-  seq,
-  rep} from '../src/core';
+import {txt, rgx, opt, exc, any, seq, rep} from '../src/core';
 
 suite('Core', function () {
     'use strict';
@@ -448,8 +439,9 @@ suite('Core', function () {
 
     suite('then', function () {
         test('simple', function () {
-            var p = rgx(/\d+/).
-                then(function (s) { return 1 / +s });
+            var p = rgx(/\d+/).then(function (s) {
+                return 1 / +s
+            });
 
             var r = p.exec('10');
 
@@ -458,8 +450,12 @@ suite('Core', function () {
 
         test('chain', function () {
             var p = rgx(/\d+/)
-                .then(function (s) { return +s })
-                .then(function (n) { return 1 / n });
+                .then(function (s) {
+                    return +s
+                })
+                .then(function (n) {
+                    return 1 / n
+                });
 
             var r = p.exec('10');
 
@@ -468,8 +464,12 @@ suite('Core', function () {
 
         test('text', function () {
             var n = rgx(/\d+/)
-                .then(function (s) { return +s + 1 })
-                .then(function (s, t) { return t + '=>' + s });
+                .then(function (s) {
+                    return +s + 1
+                })
+                .then(function (s, t) {
+                    return t + '=>' + s
+                });
 
             var p = rep(n, txt(','));
             var r = p.exec('123,456,789');
@@ -479,7 +479,9 @@ suite('Core', function () {
 
         test('rejected', function () {
             var n = 0;
-            var p = txt('a').then(function () { n = 1 });
+            var p = txt('a').then(function () {
+                n = 1
+            });
             var r = p.exec('b');
 
             assert.equal(r, null);

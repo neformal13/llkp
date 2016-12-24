@@ -1,12 +1,16 @@
-import assert from 'assert';
+import assert, {throws, deepEqual, equal} from 'assert';
 import ABNF from '../src/abnf';
 
-const forEach = (dict, fn) => {for (let key in dict) {fn(dict[key], key); }};
+const forEach = (dict, fn) => {
+    for (let key in dict) {
+        fn(dict[key], key);
+    }
+};
 
 function ptest(pattern, samples) {
     let rules = {
-      'num': ABNF(/\d+/).parseInt(),
-      'var': /[a-zA-Z]\w+/
+        'num': ABNF(/\d+/).parseInt(),
+        'var': /[a-zA-Z]\w+/
     };
 
     if (arguments.length === 3) {
@@ -19,32 +23,30 @@ function ptest(pattern, samples) {
 
         test(testName, () => {
             const result = ABNF(pattern, rules).exec(input);
-            assert.deepEqual(result, expectedResult);
+            deepEqual(result, expectedResult);
         });
     });
 }
 
-function psuite(name, patterns) {
-    suite(name, () => forEach(patterns, (samples, pattern) => ptest(pattern, samples) ));
-}
+const psuite = (name, patterns) =>
+    suite(name, () => forEach(patterns, (samples, pattern) => ptest(pattern, samples)));
 
-suite('ABNF', function () {
-    'use strict';
+suite('ABNF', () => {
 
-    test('InvalidRule', () => assert.throws(
-      () => { ABNF('1*') },
-      'SyntaxError: Invalid ABNF rule: 1*'
+    test('InvalidRule', () => throws(
+        () => ABNF('1*'),
+        'SyntaxError: Invalid ABNF rule: 1*'
     ));
 
-    test('ReservedRule', () => assert.throws(
-      () => ABNF('DIGIT', { DIGIT: /\d/ }) ,
-      'SyntaxError: Invalid ABNF rule: 1*'
+    test('ReservedRule', () => throws(
+        () => ABNF('DIGIT', {DIGIT: /\d/}),
+        'SyntaxError: Invalid ABNF rule: 1*'
     ));
 
     suite('toString', () =>
         test('text', () => {
-            const p = new ABNF('"123"');
-            assert.equal(p, '"123"');
+            const p = ABNF('"123"');
+            equal(p, '"123"');
         })
     );
 
@@ -53,7 +55,7 @@ suite('ABNF', function () {
         assert(p instanceof ABNF);
     });
 
-    suite('BasicParsing',  () => {
+    suite('BasicParsing', () => {
         psuite('DoubleQuotedText', {
             '""': {
                 '': '',
@@ -365,28 +367,28 @@ suite('ABNF', function () {
 
         psuite('LabeledSequence', {
             'abc:`\\d+`': {
-                '123': { abc: 123 },
+                '123': {abc: 123},
                 'abc': null
             },
 
             'w:`[a-z]+` "=" v:`[a-z0-9]+`': {
-                'charset=utf8': { w: 'charset', v: 'utf8' },
+                'charset=utf8': {w: 'charset', v: 'utf8'},
                 'charset = utf8': null
             },
 
             'w2:`[0-9]+` ";" w_12:`[0-9]+`': {
-                '123;456': { w2: 123, w_12: 456 },
+                '123;456': {w2: 123, w_12: 456},
                 ';': null
             },
 
             '*{";"}(key:`[a-z]+` "=" val:`[0-9]+`)': {
-                'abc=123;def=456;ghi=789': [{ key: 'abc', val: 123 }, { key: 'def', val: 456 }, { key: 'ghi', val: 789 }],
+                'abc=123;def=456;ghi=789': [{key: 'abc', val: 123}, {key: 'def', val: 456}, {key: 'ghi', val: 789}],
                 '': []
             },
 
             'num:`[0-9]+` / var:`[a-z]+`': {
-                '123': { num: 123 },
-                'abc': { 'var': 'abc' },
+                '123': {num: 123},
+                'abc': {'var': 'abc'},
                 'ab_23': null
             }
         });
@@ -414,8 +416,8 @@ suite('ABNF', function () {
             },
 
             'key:`\\w+` val:["=" `\\d+`].1': {
-                'abc=123': { key: 'abc', val: '123' },
-                'abc': { key: 'abc', val: void 0 },
+                'abc=123': {key: 'abc', val: '123'},
+                'abc': {key: 'abc', val: void 0},
                 'abc=': null
             }
         });
@@ -423,15 +425,15 @@ suite('ABNF', function () {
         psuite('JoinedRepetition', {
             '*{";"}<0: 2>(`[a-z]+` "=" `[0-9]+`)': {
                 '': {},
-                'a=1;bc=23;def=456': { a: 1, bc: 23, def: 456 },
+                'a=1;bc=23;def=456': {a: 1, bc: 23, def: 456},
                 'a=1;b': null
             },
 
             '*{";"}<key: val>(key:`[a-z]+` val:["=" `[0-9]+`].1)': {
                 '': {},
-                'a=1;bc=23;def=456': { a: 1, bc: 23, def: 456 },
-                'a=1;bc;def=456': { a: 1, bc: void 0, def: 456 },
-                'a': { a: void 0 },
+                'a=1;bc=23;def=456': {a: 1, bc: 23, def: 456},
+                'a=1;bc;def=456': {a: 1, bc: void 0, def: 456},
+                'a': {a: void 0},
                 '123=': null
             },
         });
@@ -648,7 +650,7 @@ suite('ABNF', function () {
                 '': null
             });
 
-            test('CHAR-NUL',  () => assert.equal(ABNF('CHAR').exec(String.fromCharCode(0)), null) );
+            test('CHAR-NUL', () => equal(ABNF('CHAR').exec(String.fromCharCode(0)), null));
 
             ptest('CR', {
                 '\r': '\r',
@@ -769,11 +771,11 @@ suite('ABNF', function () {
     });
 
     suite('Usage', () => {
-        test('New',  () => {
+        test('New', () => {
             const p = new ABNF('1*digit', {'digit': '%x30-39'});
             const r = p.exec('123');
 
-            assert.deepEqual(r, ['1', '2', '3']);
+            deepEqual(r, ['1', '2', '3']);
             assert(p instanceof ABNF);
         });
 
@@ -783,45 +785,51 @@ suite('ABNF', function () {
                     var end = pos;
                     while (/[0-9]/.test(str.charAt(end)))
                         end++;
-                    return { res: +str.slice(pos, end), end: end };
+                    return {res: +str.slice(pos, end), end: end};
                 }
             });
 
             var s = '123;4567;8;90';
             var r = p.exec(s);
 
-            assert.deepEqual(r, [123, 4567, 8, 90]);
+            deepEqual(r, [123, 4567, 8, 90]);
         });
 
         test('NamedRules', function () {
             var p = new ABNF('1*{1*wsp}number', function (rule) {
                 this.wsp = /\x20/;
-                this.number = rule('1*digit').merge().then(function (r) { return +r });
+                this.number = rule('1*digit').merge().then(function (r) {
+                    return +r
+                });
                 this.digit = /[0-9]/;
             });
 
-            assert.deepEqual(
+            deepEqual(
                 p.exec('123   456  789'),
                 [123, 456, 789]);
         });
 
         test('UndefinedRule', function () {
-            assert.throws(
-                function () { return new ABNF('name "=" value') },
+            throws(
+                function () {
+                    return new ABNF('name "=" value')
+                },
                 'SyntaxError: Rule is not defined: name');
         });
     });
 
     suite('Transforms', function () {
-        ptest('num', function () {
-            this.num = new ABNF('1*%x30-39').then(function (r) {
-                return +r.join('');
-            });
-        }, {
-            '123': 123,
-            '000': 0,
-            'abc': null
-        });
+        ptest(
+            'num',
+            function () {
+                this.num = new ABNF('1*%x30-39').then(r => +r.join(''));
+            },
+            {
+                '123': 123,
+                '000': 0,
+                'abc': null
+            }
+        );
 
         ptest('num', function () {
             this.num = ABNF('1*digit', function () {
@@ -836,7 +844,7 @@ suite('ABNF', function () {
         });
 
         ptest('1*{";"}attr', function () {
-            this.attr = new ABNF('token "=" token', { token: /\w+/ }).text();
+            this.attr = new ABNF('token "=" token', {token: /\w+/}).text();
         }, {
             'a=b;c=d': ['a=b', 'c=d'],
             'q=p': ['q=p'],
@@ -854,7 +862,9 @@ suite('ABNF', function () {
         ptest('flat', function (rule) {
             this.flat = rule('expr').flatten();
             this.expr = rule('"(" *{sep}(num / name / expr) ")"').select(1);
-            this.num = rule(/\d+/).then(function (r) { return +r });
+            this.num = rule(/\d+/).then(function (r) {
+                return +r
+            });
             this.name = /[a-zA-Z]+/;
             this.sep = /\s*,\s*/;
         }, {
@@ -871,7 +881,7 @@ suite('ABNF', function () {
         ptest('num', function () {
             this.num = new ABNF('1*%x30-39').as('num');
         }, {
-            '123': { num: ['1', '2', '3'] },
+            '123': {num: ['1', '2', '3']},
             'qwe': null
         });
 
@@ -893,14 +903,14 @@ suite('ABNF', function () {
 
         ptest('attrs', function ($) {
             this.attrs = $('1*{";"}attr').join('k', 'v');
-            this.attr = $('key "=" val').map({ k: 0, v: 2 });
+            this.attr = $('key "=" val').map({k: 0, v: 2});
             this.key = /\w+/;
             this.val = $(/\d+/).parseInt();
         }, {
-            'a=1': { a: 1 },
-            'a=1;b=2': { a: 1, b: 2 },
-            'a=1;a=2': { a: 2 }, // a=1 was overriden
-            'a=1;b=2;c=3': { a: 1, b: 2, c: 3 },
+            'a=1': {a: 1},
+            'a=1;b=2': {a: 1, b: 2},
+            'a=1;a=2': {a: 2}, // a=1 was overriden
+            'a=1;b=2;c=3': {a: 1, b: 2, c: 3},
             'qqq=': null,
             '': null,
             '=222': null,
@@ -919,10 +929,10 @@ suite('ABNF', function () {
             ptest('y', function () {
                 this.y = ABNF('*{";"}num', {
                     num: ABNF(/\d+/).parseInt()
-                }).map({ a: 0, b: 1, c: 2 });
+                }).map({a: 0, b: 1, c: 2});
             }, {
-                '1;2;3': { a: 1, b: 2, c: 3 },
-                '1': { a: 1, b: void 0, c: void 0 },
+                '1;2;3': {a: 1, b: 2, c: 3},
+                '1': {a: 1, b: void 0, c: void 0},
                 'aaa': null
             });
         });
@@ -1023,56 +1033,58 @@ suite('ABNF', function () {
             this['token'] = /[^=;,"\s]+/;
             this['wsp'] = /\s+/;
             this['mime'] = /[-\w]+\/[-\w]+/;
-            this['data'] = rule(/.*/).then(function (s) { return decodeURIComponent(s.replace(/\+/g, '%20')) });
+            this['data'] = rule(/.*/).then(function (s) {
+                return decodeURIComponent(s.replace(/\+/g, '%20'))
+            });
         }, {
             '': null,
 
             'data:text/plain;charset=utf-8,how+are+you%3F': {
                 mime: 'text/plain',
                 data: 'how are you?',
-                attrs: { 'charset': 'utf-8' }
+                attrs: {'charset': 'utf-8'}
             },
 
             'data:;charset="utf-8",how+are+you%3F': {
                 mime: void 0,
                 data: 'how are you?',
-                attrs: { 'charset': 'utf-8' }
+                attrs: {'charset': 'utf-8'}
             },
 
             'data:;charset="",how+are+you%3F': {
                 mime: void 0,
                 data: 'how are you?',
-                attrs: { 'charset': '' }
+                attrs: {'charset': ''}
             },
 
             'data:;charset="abc \\" def",how+are+you%3F': {
                 mime: void 0,
                 data: 'how are you?',
-                attrs: { 'charset': 'abc " def' }
+                attrs: {'charset': 'abc " def'}
             },
 
             'data:;charset="abc \\\\ def",how+are+you%3F': {
                 mime: void 0,
                 data: 'how are you?',
-                attrs: { 'charset': 'abc \\ def' }
+                attrs: {'charset': 'abc \\ def'}
             },
 
             'data:;charset;base64,how+are+you%3F': {
                 mime: void 0,
                 data: 'how are you?',
-                attrs: { charset: void 0, base64: void 0 }
+                attrs: {charset: void 0, base64: void 0}
             },
 
             '   data   :   text/html ;  charset  =   utf-8  ;   base64   ,how+are+you%3F': {
                 mime: 'text/html',
                 data: 'how are you?',
-                attrs: { 'charset': 'utf-8', base64: void 0 }
+                attrs: {'charset': 'utf-8', base64: void 0}
             },
 
             'data:application/sdp;charset=utf-8;es="";tag="1\\"2\\\\3";base64,v=1%0d%0as=0': {
                 mime: 'application/sdp',
                 data: 'v=1\r\ns=0',
-                attrs: { 'charset': 'utf-8', 'es': '', 'tag': '1"2\\3', base64: void 0 }
+                attrs: {'charset': 'utf-8', 'es': '', 'tag': '1"2\\3', base64: void 0}
             }
         });
 
@@ -1089,9 +1101,28 @@ suite('ABNF', function () {
 
             var input = 'Digest username="Mufasa", realm="testrealm@host.com",nonce="12",uri="/dir/index.html",qop=auth,nc=2,cnonce="3",response="44",opaque="55"Basic realm="testrealm@host.com",nonce="12",uri="/dir/index.html",qop=auth,nc=2,cnonce="3",response="44",opaque="55", NTLM, Negotiate';
 
-            assert.deepEqual(pattern.exec(input), {
-                Digest: { username: 'Mufasa', realm: 'testrealm@host.com', nonce: '12', uri: '/dir/index.html', qop: 'auth', nc: '2', cnonce: '3', response: '44', opaque: '55' },
-                Basic: { realm: 'testrealm@host.com', nonce: '12', uri: '/dir/index.html', qop: 'auth', nc: '2', cnonce: '3', response: '44', opaque: '55' },
+            deepEqual(pattern.exec(input), {
+                Digest: {
+                    username: 'Mufasa',
+                    realm: 'testrealm@host.com',
+                    nonce: '12',
+                    uri: '/dir/index.html',
+                    qop: 'auth',
+                    nc: '2',
+                    cnonce: '3',
+                    response: '44',
+                    opaque: '55'
+                },
+                Basic: {
+                    realm: 'testrealm@host.com',
+                    nonce: '12',
+                    uri: '/dir/index.html',
+                    qop: 'auth',
+                    nc: '2',
+                    cnonce: '3',
+                    response: '44',
+                    opaque: '55'
+                },
                 NTLM: {},
                 Negotiate: {}
             });
@@ -1141,12 +1172,18 @@ suite('ABNF', function () {
             // this is the parser
             var p = ABNF('1*{%x0a}<name: def>(name:rule-name *wsp "=" *wsp def:alternation)', function (rule) {
                 this['rule-name'] = /[a-zA-Z][\w-]*\w/;
-                this['alternation'] = rule('1*{*wsp "/" *wsp}concatenation').then(function (r) { return r.length > 1 ? { alt: r } : r[0] });
-                this['concatenation'] = rule('1*{1*wsp}(repetition / element)').then(function (r) { return r.length > 1 ? { con: r } : r[0] });
-                this['repetition'] = rule('repeat *wsp element').then(function (r) { return { min: r[0].min, max: r[0].max, rep: r[2] } });
+                this['alternation'] = rule('1*{*wsp "/" *wsp}concatenation').then(function (r) {
+                    return r.length > 1 ? {alt: r} : r[0]
+                });
+                this['concatenation'] = rule('1*{1*wsp}(repetition / element)').then(function (r) {
+                    return r.length > 1 ? {con: r} : r[0]
+                });
+                this['repetition'] = rule('repeat *wsp element').then(function (r) {
+                    return {min: r[0].min, max: r[0].max, rep: r[2]}
+                });
                 this['repeat'] = 'min-max / exact';
                 this['min-max'] = 'min:?number "*" max:?number';
-                this['exact'] = rule('number').map({ min: 0, max: 0 });
+                this['exact'] = rule('number').map({min: 0, max: 0});
                 this['number'] = rule(/\d+/).parseInt(10);
                 this['element'] = 'rule-ref / group / option / char-val / num-val';
                 this['rule-ref'] = 'ref:rule-name';
@@ -1169,215 +1206,215 @@ suite('ABNF', function () {
                     min: 1,
                     max: void 0,
                     rep: {
-                        alt: [{ ref: 'rule' },
-                              {
-                                  con: [{ min: void 0, max: void 0, rep: { ref: 'c-wsp' } },
-                                     { ref: 'c-nl' }]
-                              }]
+                        alt: [{ref: 'rule'},
+                            {
+                                con: [{min: void 0, max: void 0, rep: {ref: 'c-wsp'}},
+                                    {ref: 'c-nl'}]
+                            }]
                     }
                 },
                 rule: {
-                    con: [{ ref: 'rulename' },
-                          { ref: 'defined-as' },
-                          { ref: 'elements' },
-                          { ref: 'c-nl' }]
+                    con: [{ref: 'rulename'},
+                        {ref: 'defined-as'},
+                        {ref: 'elements'},
+                        {ref: 'c-nl'}]
                 },
                 rulename: {
-                    con: [{ ref: 'ALPHA' },
-                          {
-                              min: void 0,
-                              max: void 0,
-                              rep: { alt: [{ ref: 'ALPHA' }, { ref: 'DIGIT' }, { str: '-' }] }
-                          }]
+                    con: [{ref: 'ALPHA'},
+                        {
+                            min: void 0,
+                            max: void 0,
+                            rep: {alt: [{ref: 'ALPHA'}, {ref: 'DIGIT'}, {str: '-'}]}
+                        }]
                 },
                 'defined-as': {
-                    con: [{ min: void 0, max: void 0, rep: { ref: 'c-wsp' } },
-                          { alt: [{ str: '=' }, { str: '=/' }] },
-                          { min: void 0, max: void 0, rep: { ref: 'c-wsp' } }]
+                    con: [{min: void 0, max: void 0, rep: {ref: 'c-wsp'}},
+                        {alt: [{str: '='}, {str: '=/'}]},
+                        {min: void 0, max: void 0, rep: {ref: 'c-wsp'}}]
                 },
                 elements: {
-                    con: [{ ref: 'alternation' },
-                          { min: void 0, max: void 0, rep: { ref: 'c-wsp' } }]
+                    con: [{ref: 'alternation'},
+                        {min: void 0, max: void 0, rep: {ref: 'c-wsp'}}]
                 },
-                'c-wsp': { alt: [{ ref: 'WSP' }, { con: [{ ref: 'c-nl' }, { ref: 'WSP' }] }] },
-                'c-nl': { alt: [{ ref: 'comment' }, { ref: 'CRLF' }] },
+                'c-wsp': {alt: [{ref: 'WSP'}, {con: [{ref: 'c-nl'}, {ref: 'WSP'}]}]},
+                'c-nl': {alt: [{ref: 'comment'}, {ref: 'CRLF'}]},
                 comment: {
-                    con: [{ str: ';' },
-                          {
-                              min: void 0,
-                              max: void 0,
-                              rep: { alt: [{ ref: 'WSP' }, { ref: 'VCHAR' }] }
-                          },
-                          { ref: 'CRLF' }]
+                    con: [{str: ';'},
+                        {
+                            min: void 0,
+                            max: void 0,
+                            rep: {alt: [{ref: 'WSP'}, {ref: 'VCHAR'}]}
+                        },
+                        {ref: 'CRLF'}]
                 },
                 alternation: {
-                    con: [{ ref: 'concatenation' },
-                          {
-                              min: void 0,
-                              max: void 0,
-                              rep: {
-                                  con: [{ min: void 0, max: void 0, rep: { ref: 'c-wsp' } },
-                                        { str: '/' },
-                                        { min: void 0, max: void 0, rep: { ref: 'c-wsp' } },
-                                        { ref: 'concatenation' }]
-                              }
-                          }]
+                    con: [{ref: 'concatenation'},
+                        {
+                            min: void 0,
+                            max: void 0,
+                            rep: {
+                                con: [{min: void 0, max: void 0, rep: {ref: 'c-wsp'}},
+                                    {str: '/'},
+                                    {min: void 0, max: void 0, rep: {ref: 'c-wsp'}},
+                                    {ref: 'concatenation'}]
+                            }
+                        }]
                 },
                 concatenation: {
-                    con: [{ ref: 'repetition' },
-                          {
-                              min: void 0,
-                              max: void 0,
-                              rep: {
-                                  con: [{ min: 1, max: void 0, rep: { ref: 'c-wsp' } },
-                                        { ref: 'repetition' }]
-                              }
-                          }]
+                    con: [{ref: 'repetition'},
+                        {
+                            min: void 0,
+                            max: void 0,
+                            rep: {
+                                con: [{min: 1, max: void 0, rep: {ref: 'c-wsp'}},
+                                    {ref: 'repetition'}]
+                            }
+                        }]
                 },
-                repetition: { con: [{ opt: { ref: 'repeat' } }, { ref: 'element' }] },
+                repetition: {con: [{opt: {ref: 'repeat'}}, {ref: 'element'}]},
                 repeat: {
-                    alt: [{ min: 1, max: void 0, rep: { ref: 'DIGIT' } },
-                          {
-                              con: [{ min: void 0, max: void 0, rep: { ref: 'DIGIT' } },
-                                 { str: '*' },
-                                 { min: void 0, max: void 0, rep: { ref: 'DIGIT' } }]
-                          }]
+                    alt: [{min: 1, max: void 0, rep: {ref: 'DIGIT'}},
+                        {
+                            con: [{min: void 0, max: void 0, rep: {ref: 'DIGIT'}},
+                                {str: '*'},
+                                {min: void 0, max: void 0, rep: {ref: 'DIGIT'}}]
+                        }]
                 },
                 element: {
-                    alt: [{ ref: 'rulename' },
-                          { ref: 'group' },
-                          { ref: 'option' },
-                          { ref: 'char-val' },
-                          { ref: 'num-val' },
-                          { ref: 'prose-val' }]
+                    alt: [{ref: 'rulename'},
+                        {ref: 'group'},
+                        {ref: 'option'},
+                        {ref: 'char-val'},
+                        {ref: 'num-val'},
+                        {ref: 'prose-val'}]
                 },
                 group: {
-                    con: [{ str: '(' },
-                          { min: void 0, max: void 0, rep: { ref: 'c-wsp' } },
-                          { ref: 'alternation' },
-                          { min: void 0, max: void 0, rep: { ref: 'c-wsp' } },
-                          { str: ')' }]
+                    con: [{str: '('},
+                        {min: void 0, max: void 0, rep: {ref: 'c-wsp'}},
+                        {ref: 'alternation'},
+                        {min: void 0, max: void 0, rep: {ref: 'c-wsp'}},
+                        {str: ')'}]
                 },
                 option: {
-                    con: [{ str: '[' },
-                          { min: void 0, max: void 0, rep: { ref: 'c-wsp' } },
-                          { ref: 'alternation' },
-                          { min: void 0, max: void 0, rep: { ref: 'c-wsp' } },
-                          { str: ']' }]
+                    con: [{str: '['},
+                        {min: void 0, max: void 0, rep: {ref: 'c-wsp'}},
+                        {ref: 'alternation'},
+                        {min: void 0, max: void 0, rep: {ref: 'c-wsp'}},
+                        {str: ']'}]
                 },
                 'char-val': {
-                    con: [{ ref: 'DQUOTE' },
-                          {
-                              min: void 0,
-                              max: void 0,
-                              rep: { alt: [{ min: 32, max: 33 }, { min: 35, max: 126 }] }
-                          },
-                          { ref: 'DQUOTE' }]
+                    con: [{ref: 'DQUOTE'},
+                        {
+                            min: void 0,
+                            max: void 0,
+                            rep: {alt: [{min: 32, max: 33}, {min: 35, max: 126}]}
+                        },
+                        {ref: 'DQUOTE'}]
                 },
                 'num-val': {
-                    con: [{ str: '%' },
-                          { alt: [{ ref: 'bin-val' }, { ref: 'dec-val' }, { ref: 'hex-val' }] }]
+                    con: [{str: '%'},
+                        {alt: [{ref: 'bin-val'}, {ref: 'dec-val'}, {ref: 'hex-val'}]}]
                 },
                 'bin-val': {
-                    con: [{ str: 'b' },
-                          { min: 1, max: void 0, rep: { ref: 'BIT' } },
-                          {
-                              opt: {
-                                  alt: [{
-                                      min: 1,
-                                      max: void 0,
-                                      rep: {
-                                          con: [{ str: '.' },
-                                                { min: 1, max: void 0, rep: { ref: 'BIT' } }]
-                                      }
-                                  },
-                                          {
-                                              con: [{ str: '-' },
-                                                 { min: 1, max: void 0, rep: { ref: 'BIT' } }]
-                                          }]
-                              }
-                          }]
+                    con: [{str: 'b'},
+                        {min: 1, max: void 0, rep: {ref: 'BIT'}},
+                        {
+                            opt: {
+                                alt: [{
+                                    min: 1,
+                                    max: void 0,
+                                    rep: {
+                                        con: [{str: '.'},
+                                            {min: 1, max: void 0, rep: {ref: 'BIT'}}]
+                                    }
+                                },
+                                    {
+                                        con: [{str: '-'},
+                                            {min: 1, max: void 0, rep: {ref: 'BIT'}}]
+                                    }]
+                            }
+                        }]
                 },
                 'dec-val': {
-                    con: [{ str: 'd' },
-                          { min: 1, max: void 0, rep: { ref: 'DIGIT' } },
-                          {
-                              opt: {
-                                  alt: [{
-                                      min: 1,
-                                      max: void 0,
-                                      rep: {
-                                          con: [{ str: '.' },
-                                                { min: 1, max: void 0, rep: { ref: 'DIGIT' } }]
-                                      }
-                                  },
-                                          {
-                                              con: [{ str: '-' },
-                                                 { min: 1, max: void 0, rep: { ref: 'DIGIT' } }]
-                                          }]
-                              }
-                          }]
+                    con: [{str: 'd'},
+                        {min: 1, max: void 0, rep: {ref: 'DIGIT'}},
+                        {
+                            opt: {
+                                alt: [{
+                                    min: 1,
+                                    max: void 0,
+                                    rep: {
+                                        con: [{str: '.'},
+                                            {min: 1, max: void 0, rep: {ref: 'DIGIT'}}]
+                                    }
+                                },
+                                    {
+                                        con: [{str: '-'},
+                                            {min: 1, max: void 0, rep: {ref: 'DIGIT'}}]
+                                    }]
+                            }
+                        }]
                 },
                 'hex-val': {
-                    con: [{ str: 'x' },
-                          { min: 1, max: void 0, rep: { ref: 'HEXDIG' } },
-                          {
-                              opt: {
-                                  alt: [{
-                                      min: 1,
-                                      max: void 0,
-                                      rep: {
-                                          con: [{ str: '.' },
-                                                { min: 1, max: void 0, rep: { ref: 'HEXDIG' } }]
-                                      }
-                                  },
-                                          {
-                                              con: [{ str: '-' },
-                                                 { min: 1, max: void 0, rep: { ref: 'HEXDIG' } }]
-                                          }]
-                              }
-                          }]
+                    con: [{str: 'x'},
+                        {min: 1, max: void 0, rep: {ref: 'HEXDIG'}},
+                        {
+                            opt: {
+                                alt: [{
+                                    min: 1,
+                                    max: void 0,
+                                    rep: {
+                                        con: [{str: '.'},
+                                            {min: 1, max: void 0, rep: {ref: 'HEXDIG'}}]
+                                    }
+                                },
+                                    {
+                                        con: [{str: '-'},
+                                            {min: 1, max: void 0, rep: {ref: 'HEXDIG'}}]
+                                    }]
+                            }
+                        }]
                 },
                 'prose-val': {
-                    con: [{ str: '<' },
-                          {
-                              min: void 0,
-                              max: void 0,
-                              rep: { alt: [{ min: 32, max: 61 }, { min: 63, max: 126 }] }
-                          },
-                          { str: '>' }]
+                    con: [{str: '<'},
+                        {
+                            min: void 0,
+                            max: void 0,
+                            rep: {alt: [{min: 32, max: 61}, {min: 63, max: 126}]}
+                        },
+                        {str: '>'}]
                 },
-                ALPHA: { alt: [{ min: 65, max: 90 }, { min: 97, max: 122 }] },
-                BIT: { alt: [{ str: '0' }, { str: '1' }] },
-                CHAR: { min: 1, max: 127 },
-                CR: { min: 13, max: void 0 },
-                CRLF: { con: [{ ref: 'CR' }, { ref: 'LF' }] },
-                CTL: { alt: [{ min: 0, max: 31 }, { min: 127, max: void 0 }] },
-                DIGIT: { min: 48, max: 57 },
-                DQUOTE: { min: 34, max: void 0 },
+                ALPHA: {alt: [{min: 65, max: 90}, {min: 97, max: 122}]},
+                BIT: {alt: [{str: '0'}, {str: '1'}]},
+                CHAR: {min: 1, max: 127},
+                CR: {min: 13, max: void 0},
+                CRLF: {con: [{ref: 'CR'}, {ref: 'LF'}]},
+                CTL: {alt: [{min: 0, max: 31}, {min: 127, max: void 0}]},
+                DIGIT: {min: 48, max: 57},
+                DQUOTE: {min: 34, max: void 0},
                 HEXDIG: {
-                    alt: [{ ref: 'DIGIT' },
-                          { str: 'A' },
-                          { str: 'B' },
-                          { str: 'C' },
-                          { str: 'D' },
-                          { str: 'E' },
-                          { str: 'F' }]
+                    alt: [{ref: 'DIGIT'},
+                        {str: 'A'},
+                        {str: 'B'},
+                        {str: 'C'},
+                        {str: 'D'},
+                        {str: 'E'},
+                        {str: 'F'}]
                 },
-                HTAB: { min: 9, max: void 0 },
-                LF: { min: 10, max: void 0 },
+                HTAB: {min: 9, max: void 0},
+                LF: {min: 10, max: void 0},
                 LWSP: {
                     min: void 0,
                     max: void 0,
-                    rep: { alt: [{ ref: 'WSP' }, { con: [{ ref: 'CRLF' }, { ref: 'WSP' }] }] }
+                    rep: {alt: [{ref: 'WSP'}, {con: [{ref: 'CRLF'}, {ref: 'WSP'}]}]}
                 },
-                OCTET: { min: 0, max: 255 },
-                SP: { min: 32, max: void 0 },
-                VCHAR: { min: 33, max: 126 },
-                WSP: { alt: [{ ref: 'SP' }, { ref: 'HTAB' }] }
+                OCTET: {min: 0, max: 255},
+                SP: {min: 32, max: void 0},
+                VCHAR: {min: 33, max: 126},
+                WSP: {alt: [{ref: 'SP'}, {ref: 'HTAB'}]}
             };
 
-            assert.deepEqual(p.exec(s), r);
+            deepEqual(p.exec(s), r);
         });
 
         suite('Pairs', function () {
@@ -1390,7 +1427,7 @@ suite('ABNF', function () {
 
                 var results = pattern.exec('charset=utf-8,tag=123,doc-type=html');
 
-                assert.deepEqual(results, [
+                deepEqual(results, [
                     ['charset', '=', 'utf-8'],
                     ['tag', '=', '123'],
                     ['doc-type', '=', 'html']
@@ -1406,10 +1443,10 @@ suite('ABNF', function () {
 
                 var results = pattern.exec('charset=utf-8,tag=123,doc-type=html');
 
-                assert.deepEqual(results, [
-                    { name: 'charset', value: 'utf-8' },
-                    { name: 'tag', value: '123' },
-                    { name: 'doc-type', value: 'html' }
+                deepEqual(results, [
+                    {name: 'charset', value: 'utf-8'},
+                    {name: 'tag', value: '123'},
+                    {name: 'doc-type', value: 'html'}
                 ]);
             });
         });
@@ -1434,11 +1471,11 @@ suite('ABNF', function () {
                 "true": true,
                 "false": false,
                 "null": null,
-                "object": { "a": +1, "b": -2, "c": 0 },
-                "array": [{}, { "x": "y" }, "21", 23.22, [], "", null, true, false]
+                "object": {"a": +1, "b": -2, "c": 0},
+                "array": [{}, {"x": "y"}, "21", 23.22, [], "", null, true, false]
             };
 
-            assert.deepEqual(pattern.exec(JSON.stringify(source)), source);
+            deepEqual(pattern.exec(JSON.stringify(source)), source);
         });
 
         suite('XML', function () {
@@ -1459,56 +1496,56 @@ suite('ABNF', function () {
             });
 
             test('Simple', function () {
-                assert.deepEqual(
+                deepEqual(
                     p.exec('<abc>123</abc>'),
-                    { name: 'abc', attrs: void 0, nodes: ['123'] });
+                    {name: 'abc', attrs: void 0, nodes: ['123']});
             });
 
             test('Complex', function () {
                 var s =
                     '<root attr-1="value-1" attr-2>' +
-                        '<aaa x="1" y="2" z="3">' +
-                            '<aaa-1>some text inside aaa-1</aaa-1>' +
-                            '<aaa-empty p q="2 3 4" r/>' +
-                        '</aaa>' +
-                        '<empty-tag/>' +
-                        '<empty-tag-with-attr attr-1/>' +
-                        '<w1><w2><w3></w3></w2></w1>' +
+                    '<aaa x="1" y="2" z="3">' +
+                    '<aaa-1>some text inside aaa-1</aaa-1>' +
+                    '<aaa-empty p q="2 3 4" r/>' +
+                    '</aaa>' +
+                    '<empty-tag/>' +
+                    '<empty-tag-with-attr attr-1/>' +
+                    '<w1><w2><w3></w3></w2></w1>' +
                     '</root>';
 
                 var r = {
                     name: 'root',
-                    attrs: { 'attr-1': 'value-1', 'attr-2': void 0 },
+                    attrs: {'attr-1': 'value-1', 'attr-2': void 0},
                     nodes: [
                         {
                             name: 'aaa',
-                            attrs: { x: '1', y: '2', z: '3' },
+                            attrs: {x: '1', y: '2', z: '3'},
                             nodes: [
                                 {
                                     name: 'aaa-1',
                                     attrs: void 0,
                                     nodes: ['some text inside aaa-1']
                                 },
-                               {
-                                   name: 'aaa-empty',
-                                   attrs: { p: void 0, q: '2 3 4', r: void 0 }
-                               }
+                                {
+                                    name: 'aaa-empty',
+                                    attrs: {p: void 0, q: '2 3 4', r: void 0}
+                                }
                             ]
                         },
-                       { name: 'empty-tag', attrs: void 0 },
-                       { name: 'empty-tag-with-attr', attrs: { 'attr-1': void 0 } },
-                       {
-                           name: 'w1',
-                           attrs: void 0,
-                           nodes: [{
-                               name: 'w2',
-                               attrs: void 0,
-                               nodes: [{ name: 'w3', attrs: void 0, nodes: [] }]
-                           }]
-                       }]
+                        {name: 'empty-tag', attrs: void 0},
+                        {name: 'empty-tag-with-attr', attrs: {'attr-1': void 0}},
+                        {
+                            name: 'w1',
+                            attrs: void 0,
+                            nodes: [{
+                                name: 'w2',
+                                attrs: void 0,
+                                nodes: [{name: 'w3', attrs: void 0, nodes: []}]
+                            }]
+                        }]
                 };
 
-                assert.deepEqual(p.exec(s), r);
+                deepEqual(p.exec(s), r);
             });
         });
 
@@ -1524,14 +1561,14 @@ suite('ABNF', function () {
             });
 
             test('Invalid', function () {
-                assert.deepEqual(p.exec('<a>ss'), null);
+                deepEqual(p.exec('<a>ss'), null);
             });
 
             test('Valid', function () {
-                assert.deepEqual(p.exec('<a><b>123</b><c>456</c></a>'), {
+                deepEqual(p.exec('<a><b>123</b><c>456</c></a>'), {
                     tag: 'a', nodes: [
-                        { tag: 'b', nodes: ['123'] },
-                        { tag: 'c', nodes: ['456'] }
+                        {tag: 'b', nodes: ['123']},
+                        {tag: 'c', nodes: ['456']}
                     ]
                 });
             });
@@ -1566,25 +1603,25 @@ suite('ABNF', function () {
             });
 
             test('A<NOT IDENTICAL TO><ALPHA>.', () => {
-                assert.deepEqual(
+                deepEqual(
                     p.exec('\x41\xE2\x89\xA2\xCE\x91\x2E'),
                     [0x0041, 0x2262, 0x0391, 0x002E]);
             });
 
             test('the Hangul characters for the Korean word "hangugo"', () => {
-                assert.deepEqual(
+                deepEqual(
                     p.exec('\xED\x95\x9C\xEA\xB5\xAD\xEC\x96\xB4'),
                     [0xD55C, 0xAD6D, 0xC5B4]);
             });
 
             test('the Han characters for the Japanese word "nihongo"', function () {
-                assert.deepEqual(
+                deepEqual(
                     p.exec('\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E'),
                     [0x65E5, 0x672C, 0x8A9E]);
             });
 
             test('the Cyrillic characters for the Russian phrase "Kak dela?"', function () {
-                assert.deepEqual(
+                deepEqual(
                     p.exec('\xD0\x9A\xD0\xB0\xD0\xBA\x20\xD0\xB4\xD0\xB5\xD0\xBB\xD0\xB0\x3F'),
                     [1050, 1072, 1082, 32, 1076, 1077, 1083, 1072, 63]);
             });
@@ -1609,31 +1646,31 @@ suite('ABNF', function () {
             });
 
             test('<THE RA HIEROGLYPH>=Ra', function () {
-                assert.deepEqual(
+                deepEqual(
                     p.exec('\uD808\uDF45\u003D\u0052\u0061'),
                     [0x12345, 61, 82, 97]);
             });
 
             test('<MUSICAL SYMBOL G CLEF>', function () {
-                assert.deepEqual(
+                deepEqual(
                     p.exec('\uD834\uDD1E'),
                     [0x1D11E]);
             });
 
             test('<PRIVATE USE CHARACTER-10FFFD (last Unicode code point)>', function () {
-                assert.deepEqual(
+                deepEqual(
                     p.exec('\uDBFF\uDFFD'),
                     [0x10FFFD]);
             });
 
             test('How are you?', function () {
-                assert.deepEqual(
+                deepEqual(
                     p.exec('How are you?'),
                     [72, 111, 119, 32, 97, 114, 101, 32, 121, 111, 117, 63]);
             });
 
             test('the Cyrillic characters for the Russian phrase "Kak dela?"', function () {
-                assert.deepEqual(
+                deepEqual(
                     p.exec('\u041a\u0430\u043a\u0020\u0434\u0435\u043b\u0430\u003f'),
                     [1050, 1072, 1082, 32, 1076, 1077, 1083, 1072, 63]);
             });
@@ -1642,34 +1679,34 @@ suite('ABNF', function () {
         suite('Expression', function () {
             let p;
 
-            const  etest = (input, ast) => test(input, () => assert.deepEqual(p.exec(input), ast) );
+            const stringToAST = (input, ast) => test(input, () => deepEqual(p.exec(input), ast));
 
             setup(function () {
                 // This is an LL grammar for arithmetic expressions.
                 // It includes rules to form AST of an expression.
                 p = ABNF('expr', function ($) {
-                    this['expr'] = $('[ADD / SUB] term *((ADD / SUB) term)').then(function (r) {
-                        var i, t = r[1];
+                    this['expr'] = $('[ADD / SUB] term *((ADD / SUB) term)')
+                        .then(r => {
+                            let i, t = r[1];
 
-                        if (r[0] == '-')
-                            t = { neg: t };
+                            if (r[0] == '-') t = {neg: t};
 
-                        for (i = 0; i < r[2].length; i++) {
-                            t = r[2][i][0] == '+' ?
-                                { add: { lhs: t, rhs: r[2][i][1] } } :
-                                { sub: { lhs: t, rhs: r[2][i][1] } };
-                        }
+                            for (i = 0; i < r[2].length; i++) {
+                                t = r[2][i][0] == '+' ?
+                                    {add: {lhs: t, rhs: r[2][i][1]}} :
+                                    {sub: {lhs: t, rhs: r[2][i][1]}};
+                            }
 
-                        return t;
-                    });
+                            return t;
+                        });
 
                     this['term'] = $('fctr *([MUL / DIV / S] fctr)').then(function (r) {
                         var i, t = r[0];
 
                         for (i = 0; i < r[1].length; i++) {
                             t = r[1][i][0] == '/' ?
-                                { div: { lhs: t, rhs: r[1][i][1] } } :
-                                { mul: { lhs: t, rhs: r[1][i][1] } };
+                                {div: {lhs: t, rhs: r[1][i][1]}} :
+                                {mul: {lhs: t, rhs: r[1][i][1]}};
                         }
 
                         return t;
@@ -1679,7 +1716,7 @@ suite('ABNF', function () {
                         var i, t = r[r.length - 1];
 
                         for (i = r.length - 2; i >= 0; i--)
-                            t = { exp: { lhs: r[i], rhs: t } };
+                            t = {exp: {lhs: r[i], rhs: t}};
 
                         return t;
                     });
@@ -1710,269 +1747,263 @@ suite('ABNF', function () {
                 });
             });
 
-            etest('33', {
-                num: 33
-            });
+            stringToAST('33', {num: 33});
 
-            etest('12.34', {
-                num: 12.34
-            });
+            stringToAST('12.34', {num: 12.34});
 
-            etest('-33', {
-                neg: { num: 33 }
-            });
+            stringToAST('-33', {neg: {num: 33}});
 
-            etest('11 + 33', {
+            stringToAST('11 + 33', {
                 add: {
-                    lhs: { num: 11 },
-                    rhs: { num: 33 }
+                    lhs: {num: 11},
+                    rhs: {num: 33}
                 }
             });
 
-            etest('11 - 33', {
+            stringToAST('11 - 33', {
                 sub: {
-                    lhs: { num: 11 },
-                    rhs: { num: 33 }
+                    lhs: {num: 11},
+                    rhs: {num: 33}
                 }
             });
 
-            etest('11 / 33', {
+            stringToAST('11 / 33', {
                 div: {
-                    lhs: { num: 11 },
-                    rhs: { num: 33 }
+                    lhs: {num: 11},
+                    rhs: {num: 33}
                 }
             });
 
-            etest('11 * 33', {
+            stringToAST('11 * 33', {
                 mul: {
-                    lhs: { num: 11 },
-                    rhs: { num: 33 }
+                    lhs: {num: 11},
+                    rhs: {num: 33}
                 }
             });
 
-            etest('11 ^ 33', {
+            stringToAST('11 ^ 33', {
                 exp: {
-                    lhs: { num: 11 },
-                    rhs: { num: 33 }
+                    lhs: {num: 11},
+                    rhs: {num: 33}
                 }
             });
 
-            etest('11 + 22 + 33', {
+            stringToAST('11 + 22 + 33', {
                 add: {
                     lhs: {
                         add: {
-                            lhs: { num: 11 },
-                            rhs: { num: 22 }
+                            lhs: {num: 11},
+                            rhs: {num: 22}
                         }
                     },
-                    rhs: { num: 33 }
+                    rhs: {num: 33}
                 }
             });
 
-            etest('11 - 22 - 33', {
+            stringToAST('11 - 22 - 33', {
                 sub: {
                     lhs: {
                         sub: {
-                            lhs: { num: 11 },
-                            rhs: { num: 22 }
+                            lhs: {num: 11},
+                            rhs: {num: 22}
                         }
                     },
-                    rhs: { num: 33 }
+                    rhs: {num: 33}
                 }
             });
 
-            etest('11 * 22 * 33', {
+            stringToAST('11 * 22 * 33', {
                 mul: {
                     lhs: {
                         mul: {
-                            lhs: { num: 11 },
-                            rhs: { num: 22 }
+                            lhs: {num: 11},
+                            rhs: {num: 22}
                         }
                     },
-                    rhs: { num: 33 }
+                    rhs: {num: 33}
                 }
             });
 
-            etest('11 / 22 / 33', {
+            stringToAST('11 / 22 / 33', {
                 div: {
                     lhs: {
                         div: {
-                            lhs: { num: 11 },
-                            rhs: { num: 22 }
+                            lhs: {num: 11},
+                            rhs: {num: 22}
                         }
                     },
-                    rhs: { num: 33 }
+                    rhs: {num: 33}
                 }
             });
 
-            etest('11 ^ 22 ^ 33', {
+            stringToAST('11 ^ 22 ^ 33', {
                 exp: {
-                    lhs: { num: 11 },
+                    lhs: {num: 11},
                     rhs: {
                         exp: {
-                            lhs: { num: 22 },
-                            rhs: { num: 33 }
+                            lhs: {num: 22},
+                            rhs: {num: 33}
                         }
                     }
                 }
             });
 
-            etest('11 + 22 * 33', {
+            stringToAST('11 + 22 * 33', {
                 add: {
-                    lhs: { num: 11 },
+                    lhs: {num: 11},
                     rhs: {
                         mul: {
-                            lhs: { num: 22 },
-                            rhs: { num: 33 }
+                            lhs: {num: 22},
+                            rhs: {num: 33}
                         }
                     }
                 }
             });
 
-            etest('11 * 22 ^ 33', {
+            stringToAST('11 * 22 ^ 33', {
                 mul: {
-                    lhs: { num: 11 },
+                    lhs: {num: 11},
                     rhs: {
                         exp: {
-                            lhs: { num: 22 },
-                            rhs: { num: 33 }
+                            lhs: {num: 22},
+                            rhs: {num: 33}
                         }
                     }
                 }
             });
 
-            etest('(11)', {
+            stringToAST('(11)', {
                 num: 11
             });
 
-            etest('(-11)', {
-                neg: { num: 11 }
+            stringToAST('(-11)', {
+                neg: {num: 11}
             });
 
-            etest('11 + (22 + 33)', {
+            stringToAST('11 + (22 + 33)', {
                 add: {
-                    lhs: { num: 11 },
+                    lhs: {num: 11},
                     rhs: {
                         add: {
-                            lhs: { num: 22 },
-                            rhs: { num: 33 }
+                            lhs: {num: 22},
+                            rhs: {num: 33}
                         }
                     }
                 }
             });
 
-            etest('(11 + 22)^(33 - 44)', {
+            stringToAST('(11 + 22)^(33 - 44)', {
                 exp: {
                     lhs: {
                         add: {
-                            lhs: { num: 11 },
-                            rhs: { num: 22 }
+                            lhs: {num: 11},
+                            rhs: {num: 22}
                         }
                     },
                     rhs: {
                         sub: {
-                            lhs: { num: 33 },
-                            rhs: { num: 44 }
+                            lhs: {num: 33},
+                            rhs: {num: 44}
                         }
                     },
                 }
             });
 
-            etest('sin 11', {
-                sin: { num: 11 }
+            stringToAST('sin 11', {
+                sin: {num: 11}
             });
 
-            etest('sin(11)', {
-                sin: { num: 11 }
+            stringToAST('sin(11)', {
+                sin: {num: 11}
             });
 
-            etest('sin 2 + 3', {
+            stringToAST('sin 2 + 3', {
                 add: {
-                    lhs: { sin: { num: 2 } },
-                    rhs: { num: 3 }
+                    lhs: {sin: {num: 2}},
+                    rhs: {num: 3}
                 }
             });
 
-            etest('sin 2 ^ 3', {
+            stringToAST('sin 2 ^ 3', {
                 sin: {
                     exp: {
-                        lhs: { num: 2 },
-                        rhs: { num: 3 }
+                        lhs: {num: 2},
+                        rhs: {num: 3}
                     }
                 }
             });
 
-            etest('sin 2 ^ cos 3', {
+            stringToAST('sin 2 ^ cos 3', {
                 sin: {
                     exp: {
-                        lhs: { num: 2 },
-                        rhs: { cos: { num: 3 } }
+                        lhs: {num: 2},
+                        rhs: {cos: {num: 3}}
                     }
                 }
             });
 
-            etest('pi', {
+            stringToAST('pi', {
                 ref: 'pi'
             });
 
-            etest('pi - 2', {
+            stringToAST('pi - 2', {
                 sub: {
-                    lhs: { ref: 'pi' },
-                    rhs: { num: 2 }
+                    lhs: {ref: 'pi'},
+                    rhs: {num: 2}
                 }
             });
 
-            etest('sin - 2', {
+            stringToAST('sin - 2', {
                 sub: {
-                    lhs: { ref: 'sin' },
-                    rhs: { num: 2 }
+                    lhs: {ref: 'sin'},
+                    rhs: {num: 2}
                 }
             });
 
-            etest('sin cos(pi/2)', {
+            stringToAST('sin cos(pi/2)', {
                 sin: {
                     cos: {
                         div: {
-                            lhs: { ref: 'pi' },
-                            rhs: { num: 2 }
+                            lhs: {ref: 'pi'},
+                            rhs: {num: 2}
                         }
                     }
                 }
             });
 
-            etest('4 x', {
+            stringToAST('4 x', {
                 mul: {
-                    lhs: { num: 4 },
-                    rhs: { ref: 'x' }
+                    lhs: {num: 4},
+                    rhs: {ref: 'x'}
                 }
             });
 
-            etest('2 + 3i', {
+            stringToAST('2 + 3i', {
                 add: {
-                    lhs: { num: 2 },
+                    lhs: {num: 2},
                     rhs: {
                         mul: {
-                            lhs: { num: 3 },
-                            rhs: { ref: 'i' }
+                            lhs: {num: 3},
+                            rhs: {ref: 'i'}
                         }
                     }
                 }
             });
 
-            etest('e^(i pi) + 1', {
+            stringToAST('e^(i pi) + 1', {
                 add: {
                     lhs: {
                         exp: {
-                            lhs: { ref: 'e' },
+                            lhs: {ref: 'e'},
                             rhs: {
                                 mul: {
-                                    lhs: { ref: 'i' },
-                                    rhs: { ref: 'pi' }
+                                    lhs: {ref: 'i'},
+                                    rhs: {ref: 'pi'}
                                 }
                             }
                         }
                     },
-                    rhs: { num: 1 }
+                    rhs: {num: 1}
                 }
             });
         });

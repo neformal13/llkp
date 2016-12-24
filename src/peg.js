@@ -1,14 +1,15 @@
 // PEG syntax of LL(k) grammars.
 
 import {
-  Pattern,
-  txt,
-  rgx,
-  opt,
-  exc,
-  any,
-  seq,
-  rep} from './core';
+    Pattern,
+    txt,
+    rgx,
+    opt,
+    exc,
+    any,
+    seq,
+    rep
+} from './core';
 
 function PEG(definition, rules) {
     var refs = {};
@@ -74,8 +75,8 @@ function PEG(definition, rules) {
 
     function ref(name) {
         return (refs[name] = refs[name]) || new Pattern(name, function (str, pos) {
-            return refs[name].exec(str, pos);
-        });
+                return refs[name].exec(str, pos);
+            });
     }
 
     function init(self) {
@@ -105,20 +106,26 @@ function PEG(definition, rules) {
 PEG.pattern = compose(function ($) {
     this.alt = rep($('seq'), rgx(/\s+\/\s+/)).as('any');
     this.seq = rep(any($('exc'), $('trm')), rgx(/\s+/)).as('seq');
-    this.exc = seq($('trm'), rgx(/\s+~\s+/), $('trm')).map({ lhs: 0, rhs: 2 }).as('exc');
+    this.exc = seq($('trm'), rgx(/\s+~\s+/), $('trm')).map({lhs: 0, rhs: 2}).as('exc');
     this.atm = any($('txt'), $('grp'), $('chr'), $('ref'));
     this.txt = any(str('"', '"'), str("'", "'")).as('txt');
     this.chr = str('[', ']').text().as('rgx');
     this.ref = rgx(/[a-z]+/i).as('ref');
     this.trm = any(
-        seq($('lbl'), txt(':'), $('trm')).then(function (r) { r[2].lbl = r[0]; return r[2]; }),
+        seq($('lbl'), txt(':'), $('trm')).then(function (r) {
+            r[2].lbl = r[0];
+            return r[2];
+        }),
         seq(txt('&'), $('trm')).select(1).as('not').as('not'),
         seq(txt('!'), $('trm')).select(1).as('not'),
         seq($('atm'), txt('?')).select(0).as('opt'),
-        seq($('atm'), $('qtf')).then(function (r) { r[1].rep = r[0]; return r[1]; }),
+        seq($('atm'), $('qtf')).then(function (r) {
+            r[1].rep = r[0];
+            return r[1];
+        }),
         $('atm'));
-    this.grp = seq(txt('('), $('def'), txt(')'), opt(seq(txt('.'), $('lbl')).select(1))).map({ def: 1, key: 3 });
-    this.qtf = seq(opt($('sep')), any(txt('+').make(1), txt('*').make(0))).map({ sep: 0, min: 1 });
+    this.grp = seq(txt('('), $('def'), txt(')'), opt(seq(txt('.'), $('lbl')).select(1))).map({def: 1, key: 3});
+    this.qtf = seq(opt($('sep')), any(txt('+').make(1), txt('*').make(0))).map({sep: 0, min: 1});
     this.sep = seq(txt('<'), $('def'), txt('>')).select(1);
     this.lbl = rgx(/[a-z0-9]+/i);
     this.def = $('alt');
@@ -132,8 +139,8 @@ function compose(define) {
     var rules = {};
     return define.call(rules, function (name) {
         return rules[name] || new Pattern(name, function (str, pos) {
-            return rules[name].exec(str, pos);
-        });
+                return rules[name].exec(str, pos);
+            });
     });
 }
 
@@ -148,7 +155,7 @@ function str(lq, rq) {
 
 function not(pattern) {
     return new Pattern('!' + pattern, function (str, pos) {
-        return !pattern.exec(str, pos) && { res: void 0, end: pos };
+        return !pattern.exec(str, pos) && {res: void 0, end: pos};
     });
 }
 

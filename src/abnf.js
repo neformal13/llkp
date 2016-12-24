@@ -1,14 +1,15 @@
 // ABNF (RFC 5234) syntax of LL(k) grammars.
 
 import {
-  Pattern,
-  txt,
-  rgx,
-  opt,
-  exc,
-  any,
-  seq,
-  rep} from './core';
+    Pattern,
+    txt,
+    rgx,
+    opt,
+    exc,
+    any,
+    seq,
+    rep
+} from './core';
 
 const numstr = (prefix, regex, radix) => {
     const num = rgx(regex).parseInt(radix);
@@ -23,92 +24,92 @@ const hs = n => {
 };
 
 const str = string => {
-    const c = string.map( s => 'num' in s ? hs(s.num) : hs(s.min) + '-' + hs(s.max) );
+    const c = string.map(s => 'num' in s ? hs(s.num) : hs(s.min) + '-' + hs(s.max));
     return rgx(new RegExp('[' + c.join('][') + ']'));
 };
 
 const quoted = (lq, rq) => {
     const regexp = new RegExp(lq + '[\\x20-\\x7E]*?' + rq);
     return rgx(regexp)
-      .then(s => s.slice(+1, -1) );
+        .then(s => s.slice(+1, -1));
 };
 
 class ABNF extends Pattern {
-  constructor (definition, rules) {
-    const parse = abnf => {
-      const r = ABNF.pattern.exec(abnf);
-      if (r) return r;
-      throw new SyntaxError('Invalid ABNF rule: ' + abnf);
-    };
+    constructor(definition, rules) {
+        const parse = abnf => {
+            const r = ABNF.pattern.exec(abnf);
+            if (r) return r;
+            throw new SyntaxError('Invalid ABNF rule: ' + abnf);
+        };
 
-    const compile = ast => {
-      if ('seq' in ast) return buildseq(ast);
-      if ('any' in ast) return any.apply(null, ast.any.map(compile));
-      if ('rep' in ast) return buildrep(ast);
-      if ('opt' in ast) return opt(compile(ast.opt));
-      if ('str' in ast) return str(ast.str);
-      if ('txt' in ast) return txt(ast.txt);
-      if ('rgx' in ast) return rgx(new RegExp(ast.rgx));
-      if ('exc' in ast) return exc.apply(null, ast.exc.map(compile));
-      if ('ref' in ast) return ref(ast.ref);
-      if ('sel' in ast) return compile(ast.sel).select(ast.key);
-    };
+        const compile = ast => {
+            if ('seq' in ast) return buildseq(ast);
+            if ('any' in ast) return any.apply(null, ast.any.map(compile));
+            if ('rep' in ast) return buildrep(ast);
+            if ('opt' in ast) return opt(compile(ast.opt));
+            if ('str' in ast) return str(ast.str);
+            if ('txt' in ast) return txt(ast.txt);
+            if ('rgx' in ast) return rgx(new RegExp(ast.rgx));
+            if ('exc' in ast) return exc.apply(null, ast.exc.map(compile));
+            if ('ref' in ast) return ref(ast.ref);
+            if ('sel' in ast) return compile(ast.sel).select(ast.key);
+        };
 
-    const build = (definition, name) => {
-      if (definition instanceof RegExp)
-        return rgx(definition);
+        const build = (definition, name) => {
+            if (definition instanceof RegExp)
+                return rgx(definition);
 
-      if (definition instanceof Function)
-        return new Pattern(name, definition);
+            if (definition instanceof Function)
+                return new Pattern(name, definition);
 
-      if (definition instanceof Pattern)
-        return definition;
+            if (definition instanceof Pattern)
+                return definition;
 
-      return compile(parse(definition + ''));
-    };
+            return compile(parse(definition + ''));
+        };
 
-    const buildseq = ast => {
-      const p = seq.apply(null, ast.seq.map(compile));
-      return ast.map ? p.map(ast.map) : p;
-    };
+        const buildseq = ast => {
+            const p = seq.apply(null, ast.seq.map(compile));
+            return ast.map ? p.map(ast.map) : p;
+        };
 
-    const buildrep = ast => {
-      const p = rep(compile(ast.rep), ast.sep && compile(ast.sep), ast.min, ast.max);
-      return ast.key && ast.val ? p.join(ast.key, ast.val) : p;
-    };
+        const buildrep = ast => {
+            const p = rep(compile(ast.rep), ast.sep && compile(ast.sep), ast.min, ast.max);
+            return ast.key && ast.val ? p.join(ast.key, ast.val) : p;
+        };
 
-    const ref = name => {
-      if (refs[name]) return refs[name];
+        const ref = name => {
+            if (refs[name]) return refs[name];
 
-      refs[name] = null;
+            refs[name] = null;
 
-      return new Pattern(name, (str, pos) => {
-        refs[name] = refs[name] || build(rules[name], name);
-        return refs[name].exec(str, pos);
-      });
-    };
+            return new Pattern(name, (str, pos) => {
+                refs[name] = refs[name] || build(rules[name], name);
+                return refs[name].exec(str, pos);
+            });
+        };
 
-    let refs = {};
+        let refs = {};
 
-    if (rules instanceof Function)
-        rules.call(rules = {}, build);
-    else
-        rules = Object.create(rules || {});
-
-    for (let name in ABNF.rules)
-        if (name in rules)
-          throw new SyntaxError('Rule name is reserved: ' + name);
+        if (rules instanceof Function)
+            rules.call(rules = {}, build);
         else
-          rules[name] = ABNF.rules[name];
+            rules = Object.create(rules || {});
 
-    let pattern = build(definition);
+        for (let name in ABNF.rules)
+            if (name in rules)
+                throw new SyntaxError('Rule name is reserved: ' + name);
+            else
+                rules[name] = ABNF.rules[name];
 
-    for (let name in refs)
-        if (!rules[name])
-          throw new SyntaxError('Rule is not defined: ' + name);
+        let pattern = build(definition);
 
-    super(pattern + '', pattern.exec);
-  }
+        for (let name in refs)
+            if (!rules[name])
+                throw new SyntaxError('Rule is not defined: ' + name);
+
+        super(pattern + '', pattern.exec);
+    }
 }
 
 ABNF.pattern = (function () {
@@ -126,18 +127,18 @@ ABNF.pattern = (function () {
 
     rules.quantifier = any(
         seq(rgx(/\d*/),
-        txt('*'),
-        rgx(/\d*/)).then( r =>  ({ min: +r[0] || 0, max: +r[2] || +Infinity }) ),
-        rgx(/\d+/).then( r => ({ min: +r, max: +r }) )
+            txt('*'),
+            rgx(/\d*/)).then(r => ({min: +r[0] || 0, max: +r[2] || +Infinity})),
+        rgx(/\d+/).then(r => ({min: +r, max: +r}))
     );
 
     rules.join = seq(
-      txt('<'),
-      ref('key'),
-      rgx(/\s*:\s*/),
-      ref('key'),
-      txt('>')
-    ).map({ key: 1, val: 3 });
+        txt('<'),
+        ref('key'),
+        rgx(/\s*:\s*/),
+        ref('key'),
+        txt('>')
+    ).map({key: 1, val: 3});
 
     rules.rep = any(
         seq(ref('quantifier'), opt(ref('sep')), opt(ref('join')), ref('element')).then(function (r) {
@@ -153,7 +154,9 @@ ABNF.pattern = (function () {
         ref('element'));
 
     rules.exc = seq(ref('rep'), opt(seq(rgx(/\s*~\s*/), ref('rep'))))
-        .then(function (r) { return r[1] ? { exc: [r[0], r[1][1]] } : r[0] });
+        .then(function (r) {
+            return r[1] ? {exc: [r[0], r[1][1]]} : r[0]
+        });
 
     rules.seq = rep(seq(opt(ref('lbl')), ref('exc')), rgx(/\s*/))
         .then((r) => {
@@ -167,18 +170,18 @@ ABNF.pattern = (function () {
                 }
             }
 
-            return s.length == 1 && !m ? s[0] : { seq: s, map: m };
+            return s.length == 1 && !m ? s[0] : {seq: s, map: m};
         });
 
     rules.any = rep(ref('seq'), rgx(/\s*\/\s*/))
-        .then( (r) =>  r.length === 1 ? r[0] : { any: r  } );
+        .then((r) => r.length === 1 ? r[0] : {any: r});
 
     rules.sep = seq(rgx(/\s*\{\s*/), ref('any'), rgx(/\s*\}\s*/)).select(1);
     rules.grp = seq(rgx(/\s*\(\s*/), ref('any'), rgx(/\s*\)\s*/)).select(1);
     rules.opt = seq(rgx(/\s*\[\s*/), ref('any'), rgx(/\s*\]\s*/)).select(1).as('opt');
 
     rules.sgr = seq(any(ref('grp'), ref('opt')), opt(ref('sel')))
-        .then( (r) => !r[1] ? r[0] : { sel: r[0], key: r[1] } );
+        .then((r) => !r[1] ? r[0] : {sel: r[0], key: r[1]});
 
     rules.element = any(
         any(quoted('"', '"'), quoted("'", "'")).as('txt'),
@@ -218,7 +221,9 @@ ABNF.rules = {
  *   new ABNF(...)
  *   ABNF(...);
  */
-let wrapper = function (definition, rules) { return new ABNF(definition, rules); };
+let wrapper = function (definition, rules) {
+    return new ABNF(definition, rules);
+};
 wrapper.prototype = ABNF.prototype;
 
 export default wrapper;

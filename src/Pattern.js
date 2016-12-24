@@ -1,95 +1,106 @@
 // A set of predefined transforms for Pattern.
 
 class Pattern {
-  constructor (name, exec) {
-    this.params = {name, exec};
+    constructor(name, exec) {
+        this.params = {name, exec};
 
-    this.exec = (str, pos) => {
-      let r = exec(str, pos || 0);
-      return pos >= 0 ? r : !r ? null : r.end != str.length ? null : r.res;
-    };
+        this.exec = this.exec.bind(this);
+        this.then = this.then.bind(this);
+    }
 
-    this.then = (transform)  =>
-      new Pattern(name, function (str, pos) {
-        let r = exec(str, pos);
-        return r && { res: transform(r.res, str.slice(pos, r.end)), end: r.end };
-      });
-  }
+    then(transform) {
+        return new Pattern(
+            this.params.name,
+            (str, pos) => {
+                let r = this.params.exec(str, pos);
+                if (r) {
+                    let {end, res} = r;
+                    res = transform(res, str.slice(pos, end));
+                    return {res, end};
+                }
+            }
+        );
+    }
 
-  toString () {
-    return this.params.name;
-  }
+    exec(str, pos) {
+        let r = this.params.exec(str, pos || 0);
+        return pos >= 0 ? r : !r ? null : r.end != str.length ? null : r.res;
+    }
 
-  make (value) {
-    return this.then(() => value );
-  }
+    toString() {
+        return this.params.name;
+    }
 
-  select (index) {
-    return this.then(r => r ? r[index] : undefined );
-  }
+    make(value) {
+        return this.then(() => value);
+    }
 
-  as (name) {
-    return this.then(r => ({[name]: r}));
-  }
+    select(index) {
+        return this.then(r => r ? r[index] : undefined);
+    }
 
-  map (mapping) {
-    return this.then(r => {
-      let m = {}, i;
-      for (i in mapping) {
-        m[i] = r[mapping[i]];
-      }
+    as(name) {
+        return this.then(r => ({[name]: r}));
+    }
 
-      return m;
-    });
-  }
+    map(mapping) {
+        return this.then(r => {
+            let m = {}, i;
+            for (i in mapping) {
+                m[i] = r[mapping[i]];
+            }
 
-  parseInt(radix) {
-    return this.then(r =>  parseInt(r, radix));
-  }
+            return m;
+        });
+    }
 
-  parseFloat() {
-    return this.then(r => parseFloat(r));
-  }
+    parseInt(radix) {
+        return this.then(r => parseInt(r, radix));
+    }
 
-  merge (separator = '') {
-    return this.then(r =>  r.join(separator) );
-  }
+    parseFloat() {
+        return this.then(r => parseFloat(r));
+    }
 
-  trim() {
-    return this.then(r =>  r.trim());
-  }
+    merge(separator = '') {
+        return this.then(r => r.join(separator));
+    }
 
-  slice (start, end) {
-    return this.then( r =>  r.slice(start, end) );
-  }
+    trim() {
+        return this.then(r => r.trim());
+    }
 
-  text () {
-    return this.then( (r, s) => s );
-  }
+    slice(start, end) {
+        return this.then(r => r.slice(start, end));
+    }
 
-  join (key, val) {
-    return this.then( r => {
-      let m = {};
+    text() {
+        return this.then((r, s) => s);
+    }
 
-      for (let i = 0; i < r.length; i++) {
-        m[r[i][key]] = r[i][val];
-      }
+    join(key, val) {
+        return this.then(r => {
+            let m = {};
 
-      return m;
-    });
-  }
+            for (let i = 0; i < r.length; i++) {
+                m[r[i][key]] = r[i][val];
+            }
 
-  flatten () {
-    const flatten = a =>
-      a.reduce((accum, el) => {
-        if (Array.isArray(el)) accum = accum.concat(flatten(el));
-        else accum.push(el);
+            return m;
+        });
+    }
 
-        return accum;
-      }, []);
+    flatten() {
+        const flatten = a =>
+            a.reduce((accum, el) => {
+                if (Array.isArray(el)) accum = accum.concat(flatten(el));
+                else accum.push(el);
 
-    return this.then(r => flatten(r));
-  }
+                return accum;
+            }, []);
+
+        return this.then(r => flatten(r));
+    }
 }
 
 export default Pattern;

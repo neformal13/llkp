@@ -84,7 +84,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
 exports.rep = exports.seq = exports.any = exports.exc = exports.opt = exports.rgx = exports.txt = exports.Pattern = undefined;
 
@@ -95,103 +95,99 @@ var _Pattern2 = _interopRequireDefault(_Pattern);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // parses a known text
-function txt(text) {
-  var name = '"' + text.replace(/"/gm, '\\"') + '"';
-
-  return new _Pattern2.default(name, function (str, pos) {
-    if (str.substr(pos, text.length) === text) {
-      return { res: text, end: pos + text.length };
-    }
-  });
-}
+var txt = function txt(text) {
+    return new _Pattern2.default('"' + text.replace(/"/gm, '\\"') + '"', function (str, pos) {
+        if (str.substr(pos, text.length) === text) {
+            return { res: text, end: pos + text.length };
+        }
+    });
+};
 
 // parses a regular expression
 // LL(k) core parsing functions and combinators.
-// Does not depend on other modules.
-
 var rgx = function rgx(regexp) {
-  return new _Pattern2.default(regexp + '', function (str, pos) {
-    var m = regexp.exec(str.slice(pos));
-    if (m && m.index === 0) {
-      // regex must match at the beginning, so index must be 0
-      return { res: m[0], end: pos + m[0].length };
-    }
-  });
+    return new _Pattern2.default(regexp + '', function (str, pos) {
+        var m = regexp.exec(str.slice(pos));
+        if (m && m.index === 0) {
+            // regex must match at the beginning, so index must be 0
+            return { res: m[0], end: pos + m[0].length };
+        }
+    });
 };
 
 // parses an optional pattern
 var opt = function opt(pattern, defval) {
-  return new _Pattern2.default(pattern + '?', function (str, pos) {
-    return pattern.exec(str, pos) || { res: defval, end: pos };
-  });
+    return new _Pattern2.default(pattern + '?', function (str, pos) {
+        return pattern.exec(str, pos) || { res: defval, end: pos };
+    });
 };
 
 // parses a pattern if it doesn't match another pattern
 var exc = function exc(pattern, except) {
-  return new _Pattern2.default(pattern + ' ~ ' + except, function (str, pos) {
-    return !except.exec(str, pos) && pattern.exec(str, pos);
-  });
+    return new _Pattern2.default(pattern + ' ~ ' + except, function (str, pos) {
+        return !except.exec(str, pos) && pattern.exec(str, pos);
+    });
 };
 
 // parses any of the given patterns
 var any = function any() {
-  for (var _len = arguments.length, patterns = Array(_len), _key = 0; _key < _len; _key++) {
-    patterns[_key] = arguments[_key];
-  }
-
-  return new _Pattern2.default('(' + patterns.join(' | ') + ')', function (str, pos) {
-    var r = void 0;
-    for (var i = 0; i < patterns.length && !r; i++) {
-      r = patterns[i].exec(str, pos);
+    for (var _len = arguments.length, patterns = Array(_len), _key = 0; _key < _len; _key++) {
+        patterns[_key] = arguments[_key];
     }
-    return r;
-  });
+
+    return new _Pattern2.default('(' + patterns.join(' | ') + ')', function (str, pos) {
+        var r = void 0;
+        for (var i = 0; i < patterns.length && !r; i++) {
+            r = patterns[i].exec(str, pos);
+        }
+        return r;
+    });
 };
 
 // parses a sequence of patterns
 var seq = function seq() {
-  for (var _len2 = arguments.length, patterns = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-    patterns[_key2] = arguments[_key2];
-  }
-
-  return new _Pattern2.default('(' + patterns.join(' ') + ')', function (str, pos) {
-    var r = void 0,
-        end = pos,
-        res = [];
-
-    for (var i = 0; i < patterns.length; i++) {
-      r = patterns[i].exec(str, end);
-      if (!r) return;
-      res.push(r.res);
-      end = r.end;
+    for (var _len2 = arguments.length, patterns = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        patterns[_key2] = arguments[_key2];
     }
 
-    return { res: res, end: end };
-  });
+    return new _Pattern2.default('(' + patterns.join(' ') + ')', function (str, pos) {
+        var r = void 0,
+            end = pos,
+            res = [];
+
+        for (var i = 0; i < patterns.length; i++) {
+            r = patterns[i].exec(str, end);
+            if (!r) return;
+            res.push(r.res);
+            end = r.end;
+        }
+
+        return { res: res, end: end };
+    });
 };
 
 // parses a (separated) repetition of a pattern
 var rep = function rep(pattern, separator, min, max) {
-  var separated = !separator ? pattern : seq(separator, pattern).then(function (r) {
-    return r[1];
-  });
+    var separated = !separator ? pattern : seq(separator, pattern).then(function (r) {
+        return r[1];
+    });
 
-  if (!isFinite(min)) min = 1;
-  if (!isFinite(max)) max = Infinity;
+    if (!isFinite(min)) min = 1;
+    if (!isFinite(max)) max = Infinity;
 
-  return new _Pattern2.default(pattern + '*', function (str, pos) {
-    var res = [],
-        end = pos,
-        r = pattern.exec(str, end);
+    return new _Pattern2.default(pattern + '*', function (str, pos) {
+        var res = [],
+            end = pos,
+            r = pattern.exec(str, end);
 
-    while (r && r.end > end && res.length < max) {
-      res.push(r.res);
-      end = r.end;
-      r = separated.exec(str, end);
-    }
+        while (r && r.end > end && res.length < max) {
+            res.push(r.res);
+            end = r.end;
+            r = separated.exec(str, end);
+        }
 
-    return res.length >= min ? { res: res, end: end } : null;
-  });
+        return res.length >= min ? { res: res, end: end } : null;
+    });
 };
 
 exports.Pattern = _Pattern2.default;
@@ -531,9 +527,11 @@ PEG.pattern = compose(function ($) {
     this.chr = str('[', ']').text().as('rgx');
     this.ref = (0, _core.rgx)(/[a-z]+/i).as('ref');
     this.trm = (0, _core.any)((0, _core.seq)($('lbl'), (0, _core.txt)(':'), $('trm')).then(function (r) {
-        r[2].lbl = r[0];return r[2];
+        r[2].lbl = r[0];
+        return r[2];
     }), (0, _core.seq)((0, _core.txt)('&'), $('trm')).select(1).as('not').as('not'), (0, _core.seq)((0, _core.txt)('!'), $('trm')).select(1).as('not'), (0, _core.seq)($('atm'), (0, _core.txt)('?')).select(0).as('opt'), (0, _core.seq)($('atm'), $('qtf')).then(function (r) {
-        r[1].rep = r[0];return r[1];
+        r[1].rep = r[0];
+        return r[1];
     }), $('atm'));
     this.grp = (0, _core.seq)((0, _core.txt)('('), $('def'), (0, _core.txt)(')'), (0, _core.opt)((0, _core.seq)((0, _core.txt)('.'), $('lbl')).select(1))).map({ def: 1, key: 3 });
     this.qtf = (0, _core.seq)((0, _core.opt)($('sep')), (0, _core.any)((0, _core.txt)('+').make(1), (0, _core.txt)('*').make(0))).map({ sep: 0, min: 1 });
@@ -577,7 +575,7 @@ exports.default = PEG;
 
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -589,158 +587,171 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // A set of predefined transforms for Pattern.
 
 var Pattern = function () {
-  function Pattern(name, exec) {
-    _classCallCheck(this, Pattern);
+    function Pattern(name, exec) {
+        _classCallCheck(this, Pattern);
 
-    this.params = { name: name, exec: exec };
+        this.params = { name: name, exec: exec };
 
-    this.exec = function (str, pos) {
-      var r = exec(str, pos || 0);
-      return pos >= 0 ? r : !r ? null : r.end != str.length ? null : r.res;
-    };
+        this.exec = this.exec.bind(this);
+        this.then = this.then.bind(this);
+    }
 
-    this.then = function (transform) {
-      return new Pattern(name, function (str, pos) {
-        var r = exec(str, pos);
-        return r && { res: transform(r.res, str.slice(pos, r.end)), end: r.end };
-      });
-    };
-  }
+    _createClass(Pattern, [{
+        key: 'then',
+        value: function then(transform) {
+            var _this = this;
 
-  _createClass(Pattern, [{
-    key: 'toString',
-    value: function toString() {
-      return this.params.name;
-    }
-  }, {
-    key: 'make',
-    value: function make(value) {
-      return this.then(function () {
-        return value;
-      });
-    }
-  }, {
-    key: 'select',
-    value: function select(index) {
-      return this.then(function (r) {
-        return r ? r[index] : undefined;
-      });
-    }
-  }, {
-    key: 'as',
-    value: function as(name) {
-      return this.then(function (r) {
-        return _defineProperty({}, name, r);
-      });
-    }
-  }, {
-    key: 'map',
-    value: function map(mapping) {
-      return this.then(function (r) {
-        var m = {},
-            i = void 0;
-        for (i in mapping) {
-          m[i] = r[mapping[i]];
+            return new Pattern(this.params.name, function (str, pos) {
+                var r = _this.params.exec(str, pos);
+                if (r) {
+                    var end = r.end,
+                        res = r.res;
+
+                    res = transform(res, str.slice(pos, end));
+                    return { res: res, end: end };
+                }
+            });
         }
-
-        return m;
-      });
-    }
-  }, {
-    key: 'parseInt',
-    value: function (_parseInt) {
-      function parseInt(_x) {
-        return _parseInt.apply(this, arguments);
-      }
-
-      parseInt.toString = function () {
-        return _parseInt.toString();
-      };
-
-      return parseInt;
-    }(function (radix) {
-      return this.then(function (r) {
-        return parseInt(r, radix);
-      });
-    })
-  }, {
-    key: 'parseFloat',
-    value: function (_parseFloat) {
-      function parseFloat() {
-        return _parseFloat.apply(this, arguments);
-      }
-
-      parseFloat.toString = function () {
-        return _parseFloat.toString();
-      };
-
-      return parseFloat;
-    }(function () {
-      return this.then(function (r) {
-        return parseFloat(r);
-      });
-    })
-  }, {
-    key: 'merge',
-    value: function merge() {
-      var separator = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-
-      return this.then(function (r) {
-        return r.join(separator);
-      });
-    }
-  }, {
-    key: 'trim',
-    value: function trim() {
-      return this.then(function (r) {
-        return r.trim();
-      });
-    }
-  }, {
-    key: 'slice',
-    value: function slice(start, end) {
-      return this.then(function (r) {
-        return r.slice(start, end);
-      });
-    }
-  }, {
-    key: 'text',
-    value: function text() {
-      return this.then(function (r, s) {
-        return s;
-      });
-    }
-  }, {
-    key: 'join',
-    value: function join(key, val) {
-      return this.then(function (r) {
-        var m = {};
-
-        for (var i = 0; i < r.length; i++) {
-          m[r[i][key]] = r[i][val];
+    }, {
+        key: 'exec',
+        value: function exec(str, pos) {
+            var r = this.params.exec(str, pos || 0);
+            return pos >= 0 ? r : !r ? null : r.end != str.length ? null : r.res;
         }
+    }, {
+        key: 'toString',
+        value: function toString() {
+            return this.params.name;
+        }
+    }, {
+        key: 'make',
+        value: function make(value) {
+            return this.then(function () {
+                return value;
+            });
+        }
+    }, {
+        key: 'select',
+        value: function select(index) {
+            return this.then(function (r) {
+                return r ? r[index] : undefined;
+            });
+        }
+    }, {
+        key: 'as',
+        value: function as(name) {
+            return this.then(function (r) {
+                return _defineProperty({}, name, r);
+            });
+        }
+    }, {
+        key: 'map',
+        value: function map(mapping) {
+            return this.then(function (r) {
+                var m = {},
+                    i = void 0;
+                for (i in mapping) {
+                    m[i] = r[mapping[i]];
+                }
 
-        return m;
-      });
-    }
-  }, {
-    key: 'flatten',
-    value: function flatten() {
-      var flatten = function flatten(a) {
-        return a.reduce(function (accum, el) {
-          if (Array.isArray(el)) accum = accum.concat(flatten(el));else accum.push(el);
+                return m;
+            });
+        }
+    }, {
+        key: 'parseInt',
+        value: function (_parseInt) {
+            function parseInt(_x) {
+                return _parseInt.apply(this, arguments);
+            }
 
-          return accum;
-        }, []);
-      };
+            parseInt.toString = function () {
+                return _parseInt.toString();
+            };
 
-      return this.then(function (r) {
-        return flatten(r);
-      });
-    }
-  }]);
+            return parseInt;
+        }(function (radix) {
+            return this.then(function (r) {
+                return parseInt(r, radix);
+            });
+        })
+    }, {
+        key: 'parseFloat',
+        value: function (_parseFloat) {
+            function parseFloat() {
+                return _parseFloat.apply(this, arguments);
+            }
 
-  return Pattern;
+            parseFloat.toString = function () {
+                return _parseFloat.toString();
+            };
+
+            return parseFloat;
+        }(function () {
+            return this.then(function (r) {
+                return parseFloat(r);
+            });
+        })
+    }, {
+        key: 'merge',
+        value: function merge() {
+            var separator = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+            return this.then(function (r) {
+                return r.join(separator);
+            });
+        }
+    }, {
+        key: 'trim',
+        value: function trim() {
+            return this.then(function (r) {
+                return r.trim();
+            });
+        }
+    }, {
+        key: 'slice',
+        value: function slice(start, end) {
+            return this.then(function (r) {
+                return r.slice(start, end);
+            });
+        }
+    }, {
+        key: 'text',
+        value: function text() {
+            return this.then(function (r, s) {
+                return s;
+            });
+        }
+    }, {
+        key: 'join',
+        value: function join(key, val) {
+            return this.then(function (r) {
+                var m = {};
+
+                for (var i = 0; i < r.length; i++) {
+                    m[r[i][key]] = r[i][val];
+                }
+
+                return m;
+            });
+        }
+    }, {
+        key: 'flatten',
+        value: function flatten() {
+            var flatten = function flatten(a) {
+                return a.reduce(function (accum, el) {
+                    if (Array.isArray(el)) accum = accum.concat(flatten(el));else accum.push(el);
+
+                    return accum;
+                }, []);
+            };
+
+            return this.then(function (r) {
+                return flatten(r);
+            });
+        }
+    }]);
+
+    return Pattern;
 }();
 
 exports.default = Pattern;

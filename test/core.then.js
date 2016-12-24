@@ -1,11 +1,5 @@
 import {equal, deepEqual, strictEqual} from 'assert';
-import  {
-  txt,
-  rgx,
-  opt,
-  any,
-  seq,
-  rep} from '../src/core';
+import  {txt, rgx, opt, any, seq, rep} from '../src/core';
 
 suite('Core.Then', () => {
     suite('make', () => {
@@ -46,7 +40,7 @@ suite('Core.Then', () => {
             equal(r, void 0);
         });
 
-        test("4", () =>{
+        test("4", () => {
             const p = opt(txt('x')).select(123);
             const s = '';
             const r = p.exec(s);
@@ -60,14 +54,14 @@ suite('Core.Then', () => {
             const p = rgx(/\w+/).as('w');
             const r = p.exec('123');
 
-            deepEqual(r, { w: 123 });
+            deepEqual(r, {w: 123});
         });
 
         test("2", () => {
             const p = rgx(/\w+/).as('w').as('m');
             const r = p.exec('123');
 
-            deepEqual(r, { m: { w: 123 } });
+            deepEqual(r, {m: {w: 123}});
         });
     });
 
@@ -79,18 +73,18 @@ suite('Core.Then', () => {
             deepEqual(r, {});
         });
 
-        test("1", () =>{
+        test("1", () => {
             const p = rep(rgx(/\w+/), rgx(/\s+/)).map({x: 0, y: 1, z: 2});
             const r = p.exec('abc def 123');
 
-            deepEqual(r, { x: 'abc', y: 'def', z: '123' });
+            deepEqual(r, {x: 'abc', y: 'def', z: '123'});
         });
 
         test("1", () => {
             const p = rep(rgx(/\w+/), rgx(/\s+/)).map({x: 111});
             const r = p.exec('abc def 123');
 
-            deepEqual(r, { x: void 0 });
+            deepEqual(r, {x: void 0});
         });
     });
 
@@ -117,15 +111,15 @@ suite('Core.Then', () => {
         });
     });
 
-    suite('parseFloat', () =>{
-        test("1", () =>{
+    suite('parseFloat', () => {
+        test("1", () => {
             const p = rgx(/.+/).parseFloat();
             const r = p.exec('123.456');
 
             strictEqual(r, 123.456);
         });
 
-        test("2", () =>{
+        test("2", () => {
             const p = rgx(/.+/).parseFloat();
             const r = p.exec('123');
 
@@ -133,8 +127,8 @@ suite('Core.Then', () => {
         });
     });
 
-    suite('merge', () =>{
-        test("1", () =>{
+    suite('merge', () => {
+        test("1", () => {
             const p = rep(rgx(/\w+/), rgx(/\s+/)).merge();
             const r = p.exec('a  b c');
 
@@ -170,14 +164,14 @@ suite('Core.Then', () => {
             const p = rep(seq(rgx(/\w+/), txt('='), rgx(/\d+/).parseInt()), txt(';')).join(0, 2);
             const r = p.exec('a=1;bb=22;ccc=333');
 
-            deepEqual(r, { a: 1, bb: 22, ccc: 333 });
+            deepEqual(r, {a: 1, bb: 22, ccc: 333});
         });
 
         test("2", () => {
             const p = rep(seq(rgx(/\w+/), txt('='), rgx(/\d+/).parseInt()), txt(';')).join(0, 111);
             const r = p.exec('a=1;bb=22;ccc=333');
 
-            deepEqual(r, { a: void 0, bb: void 0, ccc: void 0 });
+            deepEqual(r, {a: void 0, bb: void 0, ccc: void 0});
         });
     });
 
