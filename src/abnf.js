@@ -1,15 +1,6 @@
 // ABNF (RFC 5234) syntax of LL(k) grammars.
 
-import {
-    Pattern,
-    txt,
-    rgx,
-    opt,
-    exc,
-    any,
-    seq,
-    rep
-} from './core';
+import {Pattern, txt, rgx, opt, exc, any, seq, rep} from './core';
 
 const numstr = (prefix, regex, radix) => {
     const num = rgx(regex).parseInt(radix);
@@ -44,26 +35,21 @@ class ABNF extends Pattern {
 
         const compile = ast => {
             if ('seq' in ast) return buildseq(ast);
-            if ('any' in ast) return any.apply(null, ast.any.map(compile));
+            if ('any' in ast) return any(...ast.any.map(compile));
             if ('rep' in ast) return buildrep(ast);
             if ('opt' in ast) return opt(compile(ast.opt));
             if ('str' in ast) return str(ast.str);
             if ('txt' in ast) return txt(ast.txt);
             if ('rgx' in ast) return rgx(new RegExp(ast.rgx));
-            if ('exc' in ast) return exc.apply(null, ast.exc.map(compile));
+            if ('exc' in ast) return exc(...ast.exc.map(compile));
             if ('ref' in ast) return ref(ast.ref);
             if ('sel' in ast) return compile(ast.sel).select(ast.key);
         };
 
         const build = (definition, name) => {
-            if (definition instanceof RegExp)
-                return rgx(definition);
-
-            if (definition instanceof Function)
-                return new Pattern(name, definition);
-
-            if (definition instanceof Pattern)
-                return definition;
+            if (definition instanceof RegExp)   return rgx(definition);
+            if (definition instanceof Function) return new Pattern(name, definition);
+            if (definition instanceof Pattern)  return definition;
 
             return compile(parse(definition + ''));
         };
@@ -113,10 +99,8 @@ class ABNF extends Pattern {
 }
 
 ABNF.pattern = (function () {
-    let rules = {};
-
     const ref = name => rules[name] || new Pattern(name, (str, pos) => rules[name].exec(str, pos));
-
+    let rules = {};
     rules.hexstr = numstr('x', /[0-9a-f]+/i, 16);
     rules.decstr = numstr('d', /[0-9]+/, 10);
     rules.binstr = numstr('b', /[0-1]+/, 2);
@@ -126,9 +110,11 @@ ABNF.pattern = (function () {
     rules.key = rgx(/[a-z0-9_]+/i);
 
     rules.quantifier = any(
-        seq(rgx(/\d*/),
+        seq(
+            rgx(/\d*/),
             txt('*'),
-            rgx(/\d*/)).then(r => ({min: +r[0] || 0, max: +r[2] || +Infinity})),
+            rgx(/\d*/)
+        ).then(r => ({min: +r[0] || 0, max: +r[2] || +Infinity})),
         rgx(/\d+/).then(r => ({min: +r, max: +r}))
     );
 
@@ -141,34 +127,23 @@ ABNF.pattern = (function () {
     ).map({key: 1, val: 3});
 
     rules.rep = any(
-        seq(ref('quantifier'), opt(ref('sep')), opt(ref('join')), ref('element')).then(function (r) {
-            return {
-                rep: r[3],
-                sep: r[1],
-                min: r[0].min,
-                max: r[0].max,
-                key: r[2] && r[2].key,
-                val: r[2] && r[2].val
-            };
-        }),
+        seq(ref('quantifier'), opt(ref('sep')), opt(ref('join')), ref('element'))
+            .then( ([{min, max}, sep, {key, val} = {}, rep]) => ({min, max, sep, key, val, rep,}) ),
         ref('element'));
 
     rules.exc = seq(ref('rep'), opt(seq(rgx(/\s*~\s*/), ref('rep'))))
-        .then(function (r) {
-            return r[1] ? {exc: [r[0], r[1][1]]} : r[0]
-        });
+        .then(r => r[1] ? {exc: [r[0], r[1][1]]} : r[0]);
 
     rules.seq = rep(seq(opt(ref('lbl')), ref('exc')), rgx(/\s*/))
         .then((r) => {
-            let i, m, s = [];
-
-            for (i = 0; i < r.length; i++) {
-                s.push(r[i][1]);
-                if (r[i][0]) {
+            let m;
+            let s = r.map((el, i) => {
+                if (el[0]) {
                     m = m || {};
-                    m[r[i][0]] = i;
+                    m[el[0]] = i;
                 }
-            }
+                return el[1];
+            });
 
             return s.length == 1 && !m ? s[0] : {seq: s, map: m};
         });

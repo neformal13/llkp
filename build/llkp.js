@@ -210,7 +210,11 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 var _core = __webpack_require__(0);
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -258,22 +262,20 @@ var ABNF = function (_Pattern) {
 
         var compile = function compile(ast) {
             if ('seq' in ast) return buildseq(ast);
-            if ('any' in ast) return _core.any.apply(null, ast.any.map(compile));
+            if ('any' in ast) return _core.any.apply(undefined, _toConsumableArray(ast.any.map(compile)));
             if ('rep' in ast) return buildrep(ast);
             if ('opt' in ast) return (0, _core.opt)(compile(ast.opt));
             if ('str' in ast) return str(ast.str);
             if ('txt' in ast) return (0, _core.txt)(ast.txt);
             if ('rgx' in ast) return (0, _core.rgx)(new RegExp(ast.rgx));
-            if ('exc' in ast) return _core.exc.apply(null, ast.exc.map(compile));
+            if ('exc' in ast) return _core.exc.apply(undefined, _toConsumableArray(ast.exc.map(compile)));
             if ('ref' in ast) return ref(ast.ref);
             if ('sel' in ast) return compile(ast.sel).select(ast.key);
         };
 
         var build = function build(definition, name) {
             if (definition instanceof RegExp) return (0, _core.rgx)(definition);
-
             if (definition instanceof Function) return new _core.Pattern(name, definition);
-
             if (definition instanceof _core.Pattern) return definition;
 
             return compile(parse(definition + ''));
@@ -317,14 +319,12 @@ var ABNF = function (_Pattern) {
 }(_core.Pattern);
 
 ABNF.pattern = function () {
-    var rules = {};
-
     var ref = function ref(name) {
         return rules[name] || new _core.Pattern(name, function (str, pos) {
             return rules[name].exec(str, pos);
         });
     };
-
+    var rules = {};
     rules.hexstr = numstr('x', /[0-9a-f]+/i, 16);
     rules.decstr = numstr('d', /[0-9]+/, 10);
     rules.binstr = numstr('b', /[0-1]+/, 2);
@@ -341,15 +341,19 @@ ABNF.pattern = function () {
 
     rules.join = (0, _core.seq)((0, _core.txt)('<'), ref('key'), (0, _core.rgx)(/\s*:\s*/), ref('key'), (0, _core.txt)('>')).map({ key: 1, val: 3 });
 
-    rules.rep = (0, _core.any)((0, _core.seq)(ref('quantifier'), (0, _core.opt)(ref('sep')), (0, _core.opt)(ref('join')), ref('element')).then(function (r) {
-        return {
-            rep: r[3],
-            sep: r[1],
-            min: r[0].min,
-            max: r[0].max,
-            key: r[2] && r[2].key,
-            val: r[2] && r[2].val
-        };
+    rules.rep = (0, _core.any)((0, _core.seq)(ref('quantifier'), (0, _core.opt)(ref('sep')), (0, _core.opt)(ref('join')), ref('element')).then(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 4),
+            _ref2$ = _ref2[0],
+            min = _ref2$.min,
+            max = _ref2$.max,
+            sep = _ref2[1],
+            _ref2$2 = _ref2[2];
+
+        _ref2$2 = _ref2$2 === undefined ? {} : _ref2$2;
+        var key = _ref2$2.key,
+            val = _ref2$2.val,
+            rep = _ref2[3];
+        return { min: min, max: max, sep: sep, key: key, val: val, rep: rep };
     }), ref('element'));
 
     rules.exc = (0, _core.seq)(ref('rep'), (0, _core.opt)((0, _core.seq)((0, _core.rgx)(/\s*~\s*/), ref('rep')))).then(function (r) {
@@ -357,17 +361,14 @@ ABNF.pattern = function () {
     });
 
     rules.seq = (0, _core.rep)((0, _core.seq)((0, _core.opt)(ref('lbl')), ref('exc')), (0, _core.rgx)(/\s*/)).then(function (r) {
-        var i = void 0,
-            m = void 0,
-            s = [];
-
-        for (i = 0; i < r.length; i++) {
-            s.push(r[i][1]);
-            if (r[i][0]) {
+        var m = void 0;
+        var s = r.map(function (el, i) {
+            if (el[0]) {
                 m = m || {};
-                m[r[i][0]] = i;
+                m[el[0]] = i;
             }
-        }
+            return el[1];
+        });
 
         return s.length == 1 && !m ? s[0] : { seq: s, map: m };
     });

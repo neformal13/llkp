@@ -7,7 +7,7 @@ const forEach = (dict, fn) => {
     }
 };
 
-function ptest(pattern, samples) {
+function patternTest(pattern, samples) {
     let rules = {
         'num': ABNF(/\d+/).parseInt(),
         'var': /[a-zA-Z]\w+/
@@ -28,8 +28,7 @@ function ptest(pattern, samples) {
     });
 }
 
-const psuite = (name, patterns) =>
-    suite(name, () => forEach(patterns, (samples, pattern) => ptest(pattern, samples)));
+const patternsSuite = (name, patterns) => suite(name, () => forEach(patterns, (samples, pattern) => patternTest(pattern, samples)));
 
 suite('ABNF', () => {
 
@@ -56,7 +55,7 @@ suite('ABNF', () => {
     });
 
     suite('BasicParsing', () => {
-        psuite('DoubleQuotedText', {
+        patternsSuite('DoubleQuotedText', {
             '""': {
                 '': '',
                 ' ': null,
@@ -78,7 +77,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('SingleQuotedText', {
+        patternsSuite('SingleQuotedText', {
             "''": {
                 '': '',
                 ' ': null,
@@ -100,7 +99,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('Num', {
+        patternsSuite('Num', {
             '%x31': {
                 '1': '1',
                 '2': null,
@@ -130,7 +129,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('NumRng', {
+        patternsSuite('NumRng', {
             '%x30-39': {
                 '1': '1',
                 '5': '5',
@@ -162,7 +161,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('NumStr', {
+        patternsSuite('NumStr', {
             '%x31.32.33': {
                 '123': '123',
                 '456': null,
@@ -185,7 +184,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('NumStrRng', {
+        patternsSuite('NumStrRng', {
             '%x41-5A.61-7A.30-39': {
                 'Rh8': 'Rh8',
                 'Aa0': 'Aa0',
@@ -217,7 +216,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('RegExp', {
+        patternsSuite('RegExp', {
             '`\\d+`': {
                 '123': '123',
                 'asd': null,
@@ -246,7 +245,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('Option', {
+        patternsSuite('Option', {
             '?"a"': {
                 'a': 'a',
                 '': void 0,
@@ -286,7 +285,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('Group', {
+        patternsSuite('Group', {
             '("abc" "123") "456"': {
                 'abc123456': [['abc', '123'], '456'],
                 'abc345456': null,
@@ -300,7 +299,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('OptionalGroup', {
+        patternsSuite('OptionalGroup', {
             '["abc"]': {
                 'abc': 'abc',
                 '': void 0,
@@ -333,7 +332,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('Sequence', {
+        patternsSuite('Sequence', {
             '"abc" "123" "xyz"': {
                 'abc123xyz': ['abc', '123', 'xyz'],
                 'abc123xy9': null,
@@ -365,7 +364,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('LabeledSequence', {
+        patternsSuite('LabeledSequence', {
             'abc:`\\d+`': {
                 '123': {abc: 123},
                 'abc': null
@@ -393,7 +392,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('Selection', {
+        patternsSuite('Selection', {
             '("x" "y").0': {
                 'xy': 'x',
                 '12': null
@@ -422,7 +421,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('JoinedRepetition', {
+        patternsSuite('JoinedRepetition', {
             '*{";"}<0: 2>(`[a-z]+` "=" `[0-9]+`)': {
                 '': {},
                 'a=1;bc=23;def=456': {a: 1, bc: 23, def: 456},
@@ -438,7 +437,7 @@ suite('ABNF', () => {
             },
         });
 
-        psuite('Alternation', {
+        patternsSuite('Alternation', {
             '1*{" "}("abc" / `def` / \'ghi\')': {
                 'abc ghi def': ['abc', 'ghi', 'def'],
                 'def ghi': ['def', 'ghi'],
@@ -485,7 +484,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('Repetition', {
+        patternsSuite('Repetition', {
             '1`.`': {
                 'a': ['a'],
                 'ab': null
@@ -576,7 +575,7 @@ suite('ABNF', () => {
             }
         });
 
-        psuite('Exclusion', {
+        patternsSuite('Exclusion', {
             '"A" ~ "B"': {
                 'A': 'A',
                 'B': null,
@@ -622,7 +621,7 @@ suite('ABNF', () => {
         });
 
         suite('Predefined', function () {
-            ptest('ALPHA', {
+            patternTest('ALPHA', {
                 'a': 'a',
                 'h': 'h',
                 'z': 'z',
@@ -633,14 +632,14 @@ suite('ABNF', () => {
                 '': null
             });
 
-            ptest('BIT', {
+            patternTest('BIT', {
                 '0': '0',
                 '1': '1',
                 '2': null,
                 '': null
             });
 
-            ptest('CHAR', {
+            patternTest('CHAR', {
                 '\x01': '\x01',
                 'H': 'H',
                 'h': 'h',
@@ -652,21 +651,21 @@ suite('ABNF', () => {
 
             test('CHAR-NUL', () => equal(ABNF('CHAR').exec(String.fromCharCode(0)), null));
 
-            ptest('CR', {
+            patternTest('CR', {
                 '\r': '\r',
                 '\n': null,
                 '': null,
                 '3': null
             });
 
-            ptest('LF', {
+            patternTest('LF', {
                 '\r': null,
                 '\n': '\n',
                 '': null,
                 '3': null
             });
 
-            ptest('CRLF', {
+            patternTest('CRLF', {
                 '\r\n': ['\r', '\n'],
                 '\n': null,
                 '\r': null,
@@ -674,7 +673,7 @@ suite('ABNF', () => {
                 '3': null
             });
 
-            ptest('CTL', {
+            patternTest('CTL', {
                 '\x01': '\x01',
                 '\x15': '\x15',
                 '\x7F': '\x7F',
@@ -682,7 +681,7 @@ suite('ABNF', () => {
                 '': null
             });
 
-            ptest('DIGIT', {
+            patternTest('DIGIT', {
                 '0': '0',
                 '5': '5',
                 '9': '9',
@@ -690,7 +689,7 @@ suite('ABNF', () => {
                 '': null
             });
 
-            ptest('HEXDIG', {
+            patternTest('HEXDIG', {
                 '0': '0',
                 '5': '5',
                 '9': '9',
@@ -701,39 +700,39 @@ suite('ABNF', () => {
                 '': null
             });
 
-            ptest('DQUOTE', {
+            patternTest('DQUOTE', {
                 '"': '"',
                 "'": null,
                 '': null
             });
 
-            ptest('HTAB', {
+            patternTest('HTAB', {
                 '\x09': '\x09',
                 '\x08': null,
                 '': null
             });
 
-            ptest('OCTET', {
+            patternTest('OCTET', {
                 'a': 'a',
                 '\xFF': '\xFF',
                 '\u0409': null,
                 '': null
             });
 
-            ptest('VCHAR', {
+            patternTest('VCHAR', {
                 '\x21': '\x21',
                 '\x7E': '\x7E',
                 'G': 'G',
                 '': null
             });
 
-            ptest('SP', {
+            patternTest('SP', {
                 '\x20': '\x20',
                 '\r': null,
                 '': null
             });
 
-            ptest('WSP', {
+            patternTest('WSP', {
                 '\x20': '\x20',
                 '\x09': '\x09',
                 '\r': null,
@@ -741,7 +740,7 @@ suite('ABNF', () => {
                 '': null
             });
 
-            ptest('LWSP', {
+            patternTest('LWSP', {
                 ' \t': [' ', '\t'],
                 '\r\n ': [[['\r', '\n'], ' ']],
                 '   ': [' ', ' ', ' '],
@@ -751,7 +750,7 @@ suite('ABNF', () => {
         });
 
         suite('Various', function () {
-            ptest('"Q" PLUS "Q" / "W"', {
+            patternTest('"Q" PLUS "Q" / "W"', {
                 'PLUS': /\s*\+\s*/
             }, {
                 'W': 'W',
@@ -760,7 +759,7 @@ suite('ABNF', () => {
                 'Q': null
             });
 
-            ptest('?sign 1*digit', {
+            patternTest('?sign 1*digit', {
                 'sign': '"+" / "-"',
                 'digit': new ABNF('%x30-39')
             }, {
@@ -819,7 +818,7 @@ suite('ABNF', () => {
     });
 
     suite('Transforms', function () {
-        ptest(
+        patternTest(
             'num',
             function () {
                 this.num = new ABNF('1*%x30-39').then(r => +r.join(''));
@@ -831,7 +830,7 @@ suite('ABNF', () => {
             }
         );
 
-        ptest('num', function () {
+        patternTest('num', function () {
             this.num = ABNF('1*digit', function () {
                 this.digit = ABNF('%x30-39').then(function (r) {
                     return String.fromCharCode('A'.charCodeAt(0) + r.charCodeAt(0) - '0'.charCodeAt(0));
@@ -843,7 +842,7 @@ suite('ABNF', () => {
             'abc': null
         });
 
-        ptest('1*{";"}attr', function () {
+        patternTest('1*{";"}attr', function () {
             this.attr = new ABNF('token "=" token', {token: /\w+/}).text();
         }, {
             'a=b;c=d': ['a=b', 'c=d'],
@@ -852,14 +851,14 @@ suite('ABNF', () => {
             '': null
         });
 
-        ptest('x', function () {
+        patternTest('x', function () {
             this.x = new ABNF('?"qqq"').text();
         }, {
             '': '',
             'qqq': 'qqq'
         });
 
-        ptest('flat', function (rule) {
+        patternTest('flat', function (rule) {
             this.flat = rule('expr').flatten();
             this.expr = rule('"(" *{sep}(num / name / expr) ")"').select(1);
             this.num = rule(/\d+/).then(function (r) {
@@ -878,14 +877,14 @@ suite('ABNF', () => {
             '(sin 5)': null
         });
 
-        ptest('num', function () {
+        patternTest('num', function () {
             this.num = new ABNF('1*%x30-39').as('num');
         }, {
             '123': {num: ['1', '2', '3']},
             'qwe': null
         });
 
-        ptest('num', function () {
+        patternTest('num', function () {
             this.num = new ABNF('*%x30-39').merge();
         }, {
             '123': '123',
@@ -893,7 +892,7 @@ suite('ABNF', () => {
             'qwe': null
         });
 
-        ptest('merge', function () {
+        patternTest('merge', function () {
             this.merge = new ABNF('"aaa" ?"bbb" "ccc"').merge();
         }, {
             'aaaccc': 'aaaccc',
@@ -901,7 +900,7 @@ suite('ABNF', () => {
             'q': null
         });
 
-        ptest('attrs', function ($) {
+        patternTest('attrs', function ($) {
             this.attrs = $('1*{";"}attr').join('k', 'v');
             this.attr = $('key "=" val').map({k: 0, v: 2});
             this.key = /\w+/;
@@ -918,7 +917,7 @@ suite('ABNF', () => {
         });
 
         suite('Select', function () {
-            ptest('x', function () {
+            patternTest('x', function () {
                 this.x = ABNF('1*{" "}(1*%x30-39)').select(1);
             }, {
                 '123 456 789': ['4', '5', '6'],
@@ -926,7 +925,7 @@ suite('ABNF', () => {
                 '': null
             });
 
-            ptest('y', function () {
+            patternTest('y', function () {
                 this.y = ABNF('*{";"}num', {
                     num: ABNF(/\d+/).parseInt()
                 }).map({a: 0, b: 1, c: 2});
@@ -939,7 +938,7 @@ suite('ABNF', () => {
     });
 
     suite('PracticalApplications', function () {
-        ptest('qstr', function () {
+        patternTest('qstr', function () {
             this.qstr = ABNF('quote *((esc char).1 / char ~ quote) quote', {
                 quote: '%x22',
                 char: '%x00-FF',
@@ -953,7 +952,7 @@ suite('ABNF', () => {
             '"qqq\\"': null
         });
 
-        ptest('URI', function () {
+        patternTest('URI', function () {
             this.URI = ABNF('[scheme ":"] ["//" [user "@"] host [":" port]] path ["?" query] ["#" hash]', {
                 query: /[^#]*/,
                 scheme: /[a-zA-Z][\w+-.]*/,
@@ -1025,7 +1024,7 @@ suite('ABNF', () => {
             }
         });
 
-        ptest('data-url', function (rule) {
+        patternTest('data-url', function (rule) {
             this['data-url'] = 'scheme ?wsp mime:?mime ?wsp attrs:attributes ?wsp "," ?wsp data:data';
             this['attributes'] = '*<akey:aval>(?wsp ";" ?wsp akey:token ?wsp aval:["=" ?wsp v:(token / str)].v ?wsp)';
             this['str'] = ABNF('%x22 *((%x5c %x00-FF).1 / %x00-FF ~ %x22) %x22').select(1).merge();
