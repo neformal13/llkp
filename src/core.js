@@ -85,7 +85,7 @@ const rep = (pattern, separator, min, max) => {
                 r = separated.exec(str, end);
             }
 
-            return res.length >= min ? {res: res, end: end} : null;
+            return res.length >= min ? {res, end} : null;
         }
     );
 };

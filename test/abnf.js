@@ -1433,7 +1433,7 @@ suite('ABNF', () => {
                 ]);
             });
 
-            test('B', function () {
+            test('B', () => {
                 var pattern = ABNF('1*{","}pair', {
                     name: /[a-zA-Z][a-zA-Z0-9\-]+/,
                     value: /[\w\-]+/,
@@ -1500,21 +1500,21 @@ suite('ABNF', () => {
                     {name: 'abc', attrs: void 0, nodes: ['123']});
             });
 
-            test('Complex', function () {
-                var s =
+            test('Complex', () => {
+                const s =
                     '<root attr-1="value-1" attr-2>' +
-                    '<aaa x="1" y="2" z="3">' +
-                    '<aaa-1>some text inside aaa-1</aaa-1>' +
-                    '<aaa-empty p q="2 3 4" r/>' +
-                    '</aaa>' +
-                    '<empty-tag/>' +
-                    '<empty-tag-with-attr attr-1/>' +
-                    '<w1><w2><w3></w3></w2></w1>' +
+                        '<aaa x="1" y="2" z="3">' +
+                        '<aaa-1>some text inside aaa-1</aaa-1>' +
+                        '<aaa-empty p q="2 3 4" r/>' +
+                        '</aaa>' +
+                        '<empty-tag/>' +
+                        '<empty-tag-with-attr attr-1/>' +
+                        '<w1><w2><w3></w3></w2></w1>' +
                     '</root>';
 
-                var r = {
+                const r = {
                     name: 'root',
-                    attrs: {'attr-1': 'value-1', 'attr-2': void 0},
+                    attrs: {'attr-1': 'value-1', 'attr-2': undefined},
                     nodes: [
                         {
                             name: 'aaa',
@@ -1522,24 +1522,24 @@ suite('ABNF', () => {
                             nodes: [
                                 {
                                     name: 'aaa-1',
-                                    attrs: void 0,
+                                    attrs: undefined,
                                     nodes: ['some text inside aaa-1']
                                 },
                                 {
                                     name: 'aaa-empty',
-                                    attrs: {p: void 0, q: '2 3 4', r: void 0}
+                                    attrs: {p: undefined, q: '2 3 4', r: undefined}
                                 }
                             ]
                         },
-                        {name: 'empty-tag', attrs: void 0},
-                        {name: 'empty-tag-with-attr', attrs: {'attr-1': void 0}},
+                        {name: 'empty-tag', attrs: undefined},
+                        {name: 'empty-tag-with-attr', attrs: {'attr-1': undefined}},
                         {
                             name: 'w1',
-                            attrs: void 0,
+                            attrs: undefined,
                             nodes: [{
                                 name: 'w2',
-                                attrs: void 0,
-                                nodes: [{name: 'w3', attrs: void 0, nodes: []}]
+                                attrs: undefined,
+                                nodes: [{name: 'w3', attrs: undefined, nodes: []}]
                             }]
                         }]
                 };
@@ -1548,10 +1548,10 @@ suite('ABNF', () => {
             });
         });
 
-        suite('SimpleXML', function () {
-            var p;
+        suite('SimpleXML', () => {
+            let p;
 
-            setup(function () {
+            setup(() => {
                 p = ABNF('node', {
                     node: '"<" tag:name ">" nodes:*(node / text) "</" name ">"',
                     name: /[^<>/]+/,
@@ -1559,27 +1559,26 @@ suite('ABNF', () => {
                 });
             });
 
-            test('Invalid', function () {
-                deepEqual(p.exec('<a>ss'), null);
-            });
+            test('Invalid', () => deepEqual(p.exec('<a>ss'), null) );
 
-            test('Valid', function () {
+            test('Valid', () =>
                 deepEqual(p.exec('<a><b>123</b><c>456</c></a>'), {
                     tag: 'a', nodes: [
                         {tag: 'b', nodes: ['123']},
                         {tag: 'c', nodes: ['456']}
                     ]
-                });
-            });
+                })
+            );
         });
 
         suite('UTF-8', function () {
-            var p;
+            let p;
 
             setup(function () {
                 // this parser reads a string in which every character represents a byte
                 // of a UTF-8 string and returns an array of unicode code-points
                 p = ABNF('1*char', function (rule) {
+
                     this.char = rule('chr1 0byte / chr2 1byte / chr3 2byte / chr4 3byte / chr5 4byte').flatten().then(decode);
                     this.byte = dint('%b10000000-10111111', 6);
                     this.chr1 = dint('%b00000000-01111111', 7);
@@ -1589,10 +1588,8 @@ suite('ABNF', () => {
                     this.chr5 = dint('%b11111000-11111011', 2);
 
                     function dint(abnf, bits) {
-                        var mask = (1 << (bits + 1)) - 1;
-                        return rule(abnf).then(function (r) {
-                            return r.charCodeAt(0) & mask;
-                        });
+                        const mask = (1 << (bits + 1)) - 1;
+                        return rule(abnf).then(r => r.charCodeAt(0) & mask);
                     }
 
                     function decode(n) {
@@ -1627,7 +1624,7 @@ suite('ABNF', () => {
         });
 
         suite('UTF-16', function () {
-            var p;
+            let p;
 
             setup(function () {
                 // this parser reads a string in which every character represents a word (16 bits)
@@ -1871,13 +1868,9 @@ suite('ABNF', () => {
                 }
             });
 
-            stringToAST('(11)', {
-                num: 11
-            });
+            stringToAST('(11)', {num: 11});
 
-            stringToAST('(-11)', {
-                neg: {num: 11}
-            });
+            stringToAST('(-11)', { neg: {num: 11}});
 
             stringToAST('11 + (22 + 33)', {
                 add: {
@@ -1908,13 +1901,9 @@ suite('ABNF', () => {
                 }
             });
 
-            stringToAST('sin 11', {
-                sin: {num: 11}
-            });
+            stringToAST('sin 11', {sin: {num: 11}});
 
-            stringToAST('sin(11)', {
-                sin: {num: 11}
-            });
+            stringToAST('sin(11)', { sin: {num: 11}});
 
             stringToAST('sin 2 + 3', {
                 add: {
@@ -1941,9 +1930,7 @@ suite('ABNF', () => {
                 }
             });
 
-            stringToAST('pi', {
-                ref: 'pi'
-            });
+            stringToAST('pi', {ref: 'pi'});
 
             stringToAST('pi - 2', {
                 sub: {

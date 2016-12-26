@@ -21,8 +21,7 @@ const str = string => {
 
 const quoted = (lq, rq) => {
     const regexp = new RegExp(lq + '[\\x20-\\x7E]*?' + rq);
-    return rgx(regexp)
-        .then(s => s.slice(+1, -1));
+    return rgx(regexp).then(s => s.slice(+1, -1));
 };
 
 class ABNF extends Pattern {
@@ -77,10 +76,8 @@ class ABNF extends Pattern {
 
         let refs = {};
 
-        if (rules instanceof Function)
-            rules.call(rules = {}, build);
-        else
-            rules = Object.create(rules || {});
+        if (rules instanceof Function)  rules.call(rules = {}, build);
+        else rules = Object.create(rules || {});
 
         for (let name in ABNF.rules)
             if (name in rules)
