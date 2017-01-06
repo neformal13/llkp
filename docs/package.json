@@ -10,6 +10,7 @@
     "react-redux": "^5.0.1",
     "redux": "^3.6.0"
   },
+
   "devDependencies": {
     "babel-cli": "^6.18.0",
     "babel-eslint": "^6.1.2",
@@ -26,7 +27,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "webpack --watch --config ./webpack.config.js"
+    "start": "webpack --watch --config ./webpack.config.js",
+    "render": "babel-node ./scripts/generateStatic.js"
   },
   "author": "",
   "license": "ISC"

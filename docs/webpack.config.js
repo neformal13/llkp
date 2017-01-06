@@ -1,6 +1,6 @@
 module.exports = {
     entry: {
-        main: './src/index.js'
+        main: './src/frontend.js'
     },
     output: {
         path: './build',

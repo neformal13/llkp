@@ -11,9 +11,7 @@ const html = `<!doctype html>
 <html lang="en">
   ${headString}
 <body>
-  <div id = "appRoot">
-    ${appString}
-  </div>
+  <div id="appRoot">${appString}</div>
   <script src="build/bundle.js"></script>
 </body>
 </html>`;
