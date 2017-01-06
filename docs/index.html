@@ -1,51 +1,10 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
+  <head><meta charset="UTF-8"/><title>ABNF</title></head>
 <body>
-
-<form action="">
-
-<textarea name="source" class = "input">
-let zipCode  = ABNF('5DIGIT ["-" 4DIGIT]');
-let state    = ABNF('2ALPHA');
-let townName = ABNF('1*(ALPHA / SP)');
-let zipPart = ABNF(
-    'townName "," SP state 1*2SP zipCode [LF]',
-    {
-        townName,
-        state,
-        zipCode
-    });
-
-let streetName = ABNF('1*VCHAR');
-let houseNum = ABNF ('1*8(DIGIT / ALPHA)');
-let apt = ABNF('1*4DIGIT');
-let street  = ABNF(
-    '[apt SP] houseNum SP streetName LF',
-    {
-        apt,
-        houseNum,
-        streetName
-    });
-let suffix = ABNF('("Jr." / "Sr." / 1*("I" / "V" / "X"))');
-let lastName = ABNF('*ALPHA');
-let initial = ABNF('ALPHA');
-let firstName = ABNF('*ALPHA');
-let personalPart = ABNF('firstName / (initial ".")', {firstName, initial});
-let namePart = ABNF('(*(personalPart SP) lastName [SP suffix] LF) / (personalPart LF)', {personalPart, lastName, suffix});
-let postalAddress = ABNF(`namePart street zipPart`, {zipPart, street, namePart});
-</textarea>
-
-<textarea name="input" class = "input">John Dou
-1234 123A Oak
-Vancouver, BC 12345-1234</textarea>
-<button>Verify</button>
-
-</form>
-
-<script src="build/bundle.js"></script>
+  <div id = "appRoot">
+    <h1 data-reactroot="" data-reactid="1" data-react-checksum="55251490">Hello World</h1>
+  </div>
+  <script src="build/bundle.js"></script>
 </body>
 </html>

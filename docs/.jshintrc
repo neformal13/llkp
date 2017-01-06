@@ -1,0 +1,17 @@
+{
+    "esversion": 6,
+    "lastsemic": true,
+    "-W069": true,
+    "unused": true,
+    "undef": true,
+
+    "globals": {
+        "suite": false,
+        "test": false,
+        "setup": false,
+        "window": false,
+        "module": false,
+        "require": false,
+        "console": false
+    }
+}

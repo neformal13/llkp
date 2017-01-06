@@ -11,10 +11,16 @@
     "redux": "^3.6.0"
   },
   "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-eslint": "^6.1.2",
+    "babel-plugin-transform-react-jsx": "^6.8.0",
     "css-loader": "^0.26.1",
+    "eslint": "^3.13.0",
     "postcss": "^5.2.8",
     "postcss-cssnext": "^2.9.0",
     "postcss-loader": "^1.2.1",
+    "postcss-smart-import": "^0.6.6",
+    "precss": "^1.4.0",
     "style-loader": "^0.13.1",
     "webpack": "^2.2.0-rc.2"
   },

@@ -1,3 +1,5 @@
-import {renderToString} from "react-dom/server";
-const rootComponent = require("../src/index");
-console.log(rootComponent);
+import {writeFileSync} from 'fs';
+import HTML from "../src/backend";
+
+writeFileSync("index.html", HTML);
+console.log('Done!');

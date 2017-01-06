@@ -1,7 +1,10 @@
 module.exports = {
-    entry: './src/index.js',
+    entry: {
+        main: './src/index.js'
+    },
     output: {
-        filename: './build/bundle.js'
+        path: './build',
+        filename: 'bundle.js'
     },
 
     module: {
