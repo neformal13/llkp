@@ -1,0 +1,27 @@
+{
+  "name": "abnf",
+  "version": "1.0.0",
+  "description": "",
+  "main": "webpack.config.js",
+  "dependencies": {
+    "llkp": "git+https://github.com/neformal13/llkp.git",
+    "react": "^15.4.1",
+    "react-dom": "^15.4.1",
+    "react-redux": "^5.0.1",
+    "redux": "^3.6.0"
+  },
+  "devDependencies": {
+    "css-loader": "^0.26.1",
+    "postcss": "^5.2.8",
+    "postcss-cssnext": "^2.9.0",
+    "postcss-loader": "^1.2.1",
+    "style-loader": "^0.13.1",
+    "webpack": "^2.2.0-rc.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack --watch --config ./webpack.config.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
