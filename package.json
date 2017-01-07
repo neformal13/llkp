@@ -41,5 +41,6 @@
     "test": "test"
   },
   "author": "c5f7c9",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {}
 }

@@ -7,16 +7,18 @@
     "llkp": "git+https://github.com/neformal13/llkp.git",
     "react": "^15.4.1",
     "react-dom": "^15.4.1",
+    "react-highlight": "^0.9.0",
     "react-redux": "^5.0.1",
     "redux": "^3.6.0"
   },
-
   "devDependencies": {
     "babel-cli": "^6.18.0",
     "babel-eslint": "^6.1.2",
     "babel-plugin-transform-react-jsx": "^6.8.0",
     "css-loader": "^0.26.1",
     "eslint": "^3.13.0",
+    "extract-text-webpack-plugin": "^2.0.0-beta.4",
+    "isomorphic-style-loader": "^1.1.0",
     "postcss": "^5.2.8",
     "postcss-cssnext": "^2.9.0",
     "postcss-loader": "^1.2.1",
