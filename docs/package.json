@@ -18,6 +18,8 @@
     "css-loader": "^0.26.1",
     "eslint": "^3.13.0",
     "extract-text-webpack-plugin": "^2.0.0-beta.4",
+    "fake-style-loader": "^1.0.1",
+    "ignore-loader": "^0.1.2",
     "isomorphic-style-loader": "^1.1.0",
     "postcss": "^5.2.8",
     "postcss-cssnext": "^2.9.0",
@@ -25,7 +27,8 @@
     "postcss-smart-import": "^0.6.6",
     "precss": "^1.4.0",
     "style-loader": "^0.13.1",
-    "webpack": "^2.2.0-rc.2"
+    "webpack": "^2.2.0-rc.2",
+    "webpack-node-externals": "^1.5.4"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

@@ -1,11 +1,41 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8"/><title>ABNF</title>
-    <link rel="stylesheet" href="build/styles.css">
-  </head>
+  <head><meta charset="UTF-8"/><link rel="stylesheet" href="build/styles.css"/><title>ABNF</title></head>
 <body>
-  <div id="appRoot"><h1 data-reactroot="" data-reactid="1" data-react-checksum="55251490">Hello World</h1></div>
-  <script src="build/bundle.js"></script>
+  <div id="appRoot"><article data-reactroot="" data-reactid="1" data-react-checksum="-7600168"><h2 data-reactid="2">Example</h2><p data-reactid="3">The postal address example given in the augmented Backus–Naur form (ABNF) page may be specified as follows:</p><pre data-reactid="4"><code data-reactid="5">import {ABNF} from &#x27;llkp&#x27;;
+
+const zipCode       = ABNF(`5DIGIT [&quot;-&quot; 4DIGIT]`);
+const state         = ABNF(&#x27;2ALPHA&#x27;);
+const townName      = ABNF(&#x27;1*(ALPHA / SP)&#x27;);
+const zipPart       = ABNF(
+    &#x27;townName &quot;,&quot; SP state 1*2SP zipCode [LF]&#x27;,
+    { townName, state, zipCode});
+
+const streetName    = ABNF(&#x27;1*VCHAR&#x27;);
+const houseNum      = ABNF (&#x27;1*8(DIGIT / ALPHA)&#x27;);
+const apt           = ABNF(&#x27;1*4DIGIT&#x27;);
+const street        = ABNF(
+    &#x27;[apt SP] houseNum SP streetName LF&#x27;,
+    {apt, houseNum, streetName});
+    
+const suffix        = ABNF(&#x27;(&quot;Jr.&quot; / &quot;Sr.&quot; / 1*(&quot;I&quot; / &quot;V&quot; / &quot;X&quot;))&#x27;);
+const lastName      = ABNF(&#x27;*ALPHA&#x27;);
+const initial       = ABNF(&#x27;ALPHA&#x27;);
+const firstName     = ABNF(&#x27;*ALPHA&#x27;);
+const personalPart  = ABNF(&#x27;firstName / (initial &quot;.&quot;)&#x27;, {firstName, initial});
+const namePart      = ABNF(
+    &#x27;(*(personalPart SP) lastName [SP suffix] LF) / (personalPart LF)&#x27;,
+     {personalPart, lastName, suffix});
+     
+const postalAddress = ABNF(&#x27;namePart street zipPart&#x27;, {zipPart, street, namePart});
+
+const text = 
+`John Dou
+1234 123A Oak
+Vancouver, BC 12345-1234`
+
+console.log(postalAddress.exec(text), postalAddress);
+</code></pre></article></div>
+  <script src="build/frontend.js"></script>
 </body>
 </html>

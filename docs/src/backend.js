@@ -12,7 +12,7 @@ const html = `<!doctype html>
   ${headString}
 <body>
   <div id="appRoot">${appString}</div>
-  <script src="build/bundle.js"></script>
+  <script src="build/frontend.js"></script>
 </body>
 </html>`;
 
